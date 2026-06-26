@@ -4,8 +4,8 @@
   var MEASUREMENT_FIELDS = [
     { name: "weight", label: "体重", unit: "kg", type: "float", min: 0.1, max: 299.9, step: "0.1" },
     { name: "temperature", label: "体温", unit: "℃", type: "float", min: 34.0, max: 42.0, step: "0.1" },
-    { name: "systolic_bp", label: "収縮期血圧", unit: "mmHg", type: "int", min: 50, max: 250, step: "1" },
-    { name: "diastolic_bp", label: "拡張期血圧", unit: "mmHg", type: "int", min: 30, max: 150, step: "1" },
+    { name: "systolic_bp", label: "収縮期(血圧上)", unit: "mmHg", type: "int", min: 50, max: 250, step: "1" },
+    { name: "diastolic_bp", label: "拡張期(血圧下)", unit: "mmHg", type: "int", min: 30, max: 150, step: "1" },
     { name: "pulse", label: "脈拍", unit: "bpm", type: "int", min: 30, max: 200, step: "1" },
     { name: "body_fat", label: "体脂肪率", unit: "%", type: "float", min: 0.0, max: 100.0, step: "0.1" },
     { name: "bmr", label: "基礎代謝", unit: "kcal", type: "int", min: 1, max: 4999, step: "1" },
