@@ -123,6 +123,14 @@
         <p class="eyebrow">Backup</p>
         <h2>バックアップ</h2>
       </div>
+      <section class="storage-status-panel" aria-live="polite">
+        <div class="storage-status-header">
+          <h3>保存状態</h3>
+          <span class="storage-status-note">この端末で見えている記録です</span>
+        </div>
+        <div id="storage-status-list" class="storage-status-list"></div>
+        <div id="storage-status-warning" class="message message-error" hidden></div>
+      </section>
       <div id="backup-message" class="message" hidden></div>
       <div class="backup-actions">
         <button type="button" id="export-json-button" class="primary-button">JSONを書き出す</button>

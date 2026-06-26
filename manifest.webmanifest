@@ -2,6 +2,7 @@
   "name": "BioLog Mobile",
   "short_name": "BioLog",
   "description": "Offline-ready mobile health log",
+  "id": "./",
   "start_url": "./",
   "scope": "./",
   "display": "standalone",
