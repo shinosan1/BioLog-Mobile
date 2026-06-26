@@ -104,6 +104,8 @@
     ok("export app", exportPayload.app === "BioLog Mobile");
     ok("export version", exportPayload.version === 1);
     ok("export records", exportPayload.records.length === 1);
+    ok("export keeps meal detail", exportPayload.records[0].meal_detail === "meal");
+    ok("export includes activity log key", exportPayload.records[0].activity_log === "");
     ok("exported_at is string", typeof exportPayload.exported_at === "string");
     ok("exported_at is not utc z", !/Z$/.test(exportPayload.exported_at));
     ok("exported_at has offset", /^\d{4}-\d{2}-\d{2}T\d{2}:\d{2}:\d{2}\.\d{3}[+-]\d{2}:\d{2}$/.test(exportPayload.exported_at));

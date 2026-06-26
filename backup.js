@@ -61,13 +61,23 @@
     ].join("");
   }
 
+  function normalizeExportRecord(record) {
+    var normalized = Object.assign({}, record);
+
+    TEXT_FIELDS.forEach(function (key) {
+      normalized[key] = typeof normalized[key] === "string" ? normalized[key] : "";
+    });
+
+    return normalized;
+  }
+
   function buildExportPayload(records) {
     return {
       app: APP_NAME,
       version: EXPORT_VERSION,
       exported_at: formatLocalIsoWithOffset(),
       records: Array.isArray(records) ? records.map(function (record) {
-        return Object.assign({}, record);
+        return normalizeExportRecord(record);
       }) : []
     };
   }
@@ -262,6 +272,7 @@
     makeExportFileName: makeExportFileName,
     downloadJson: downloadJson,
     parseImportJson: parseImportJson,
+    normalizeExportRecord: normalizeExportRecord,
     validateImportPayload: validateImportPayload,
     normalizeImportRecord: normalizeImportRecord,
     formatLocalIsoWithOffset: formatLocalIsoWithOffset,
