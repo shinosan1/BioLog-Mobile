@@ -1,4 +1,4 @@
-const CACHE_NAME = "biolog-mobile-v2.8.0";
+const CACHE_NAME = "biolog-mobile-v2.10.0";
 const CACHE_URLS = [
   "./",
   "./index.html",
@@ -31,6 +31,12 @@ self.addEventListener("activate", (event) => {
     ))
   );
   self.clients.claim();
+});
+
+self.addEventListener("message", (event) => {
+  if (event.data && event.data.type === "SKIP_WAITING") {
+    self.skipWaiting();
+  }
 });
 
 self.addEventListener("fetch", (event) => {

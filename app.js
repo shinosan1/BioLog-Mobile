@@ -7,7 +7,8 @@
     editingDate: "",
     dateEditDate: "",
     dateEditRecord: null,
-    dateEditLoaded: false
+    dateEditLoaded: false,
+    pullRefreshing: false
   };
 
   var els = {};
@@ -275,6 +276,28 @@
     return Promise.resolve();
   }
 
+  function activeViewName() {
+    var view = document.querySelector("[data-view]:not([hidden])");
+    return view ? view.dataset.view : "today";
+  }
+
+  function refreshVisibleContent() {
+    var viewName = activeViewName();
+    var tasks = [loadTodayRecord(), renderStorageStatus()];
+
+    if (viewName === "history") {
+      tasks.push(renderHistory());
+    }
+    if (viewName === "graph") {
+      tasks.push(renderGraphs());
+    }
+    if (viewName === "backup") {
+      tasks.push(renderStorageStatus());
+    }
+
+    return Promise.all(tasks);
+  }
+
   function isStandaloneLaunch() {
     var iosStandalone = window.navigator && window.navigator.standalone === true;
     var displayStandalone = window.matchMedia &&
@@ -335,6 +358,196 @@
       }
     }).catch(function () {
       return;
+    });
+  }
+
+  function bindServiceWorkerReload() {
+    if (!("serviceWorker" in navigator)) {
+      return;
+    }
+
+    var reloading = false;
+    navigator.serviceWorker.addEventListener("controllerchange", function () {
+      if (reloading) {
+        return;
+      }
+      reloading = true;
+      setStatus("新しい版を読み込んでいます...");
+      window.location.reload();
+    });
+  }
+
+  function skipWaiting(worker) {
+    if (worker && worker.postMessage) {
+      worker.postMessage({ type: "SKIP_WAITING" });
+      return true;
+    }
+    return false;
+  }
+
+  function waitForInstallingWorker(worker) {
+    return new Promise(function (resolve) {
+      var resolved = false;
+      var timeout = window.setTimeout(function () {
+        if (!resolved) {
+          resolved = true;
+          resolve(false);
+        }
+      }, 4000);
+
+      worker.addEventListener("statechange", function () {
+        if (resolved) {
+          return;
+        }
+        if (worker.state === "installed" || worker.state === "activated") {
+          resolved = true;
+          window.clearTimeout(timeout);
+          resolve(skipWaiting(worker));
+        }
+      });
+    });
+  }
+
+  function checkForServiceWorkerUpdate() {
+    if (!("serviceWorker" in navigator) || !window.isSecureContext) {
+      return Promise.resolve(false);
+    }
+
+    return navigator.serviceWorker.getRegistration("./").then(function (registration) {
+      if (!registration) {
+        return false;
+      }
+
+      return registration.update().then(function () {
+        if (registration.waiting) {
+          return skipWaiting(registration.waiting);
+        }
+        if (registration.installing) {
+          return waitForInstallingWorker(registration.installing);
+        }
+        return false;
+      });
+    }).catch(function (error) {
+      console.warn("Service worker update check failed.", error);
+      return false;
+    });
+  }
+
+  function setPullRefreshIndicator(message, progress, isActive) {
+    if (!els.pullRefreshIndicator) {
+      return;
+    }
+
+    els.pullRefreshIndicator.textContent = message;
+    els.pullRefreshIndicator.classList.toggle("is-active", !!isActive);
+    els.pullRefreshIndicator.style.transform = "translate(-50%, " + progress + "px)";
+  }
+
+  function resetPullRefreshIndicator() {
+    if (!els.pullRefreshIndicator) {
+      return;
+    }
+
+    els.pullRefreshIndicator.classList.remove("is-active");
+    els.pullRefreshIndicator.style.transform = "";
+  }
+
+  function performPullRefresh() {
+    if (state.pullRefreshing) {
+      return;
+    }
+
+    state.pullRefreshing = true;
+    setPullRefreshIndicator("更新中...", 16, true);
+    setStatus("更新を確認しています...");
+
+    Promise.all([checkForServiceWorkerUpdate(), refreshVisibleContent()])
+      .then(function (results) {
+        if (!results[0]) {
+          setStatus("更新しました。");
+        }
+      })
+      .catch(function () {
+        setStatus("更新に失敗しました。");
+      })
+      .finally(function () {
+        window.setTimeout(function () {
+          state.pullRefreshing = false;
+          resetPullRefreshIndicator();
+        }, 450);
+      });
+  }
+
+  function createPullRefreshIndicator() {
+    var indicator = createEl("div", "pull-refresh-indicator", "下に引いて更新");
+    indicator.setAttribute("aria-live", "polite");
+    document.body.appendChild(indicator);
+    els.pullRefreshIndicator = indicator;
+  }
+
+  function bindPullRefresh() {
+    var startY = 0;
+    var currentPull = 0;
+    var isPulling = false;
+    var threshold = 72;
+
+    createPullRefreshIndicator();
+
+    window.addEventListener("touchstart", function (event) {
+      var target = event.target;
+      if (state.pullRefreshing || window.scrollY !== 0 || (target && target.closest && target.closest("input, textarea, select"))) {
+        return;
+      }
+
+      startY = event.touches[0].clientY;
+      currentPull = 0;
+      isPulling = true;
+    }, { passive: true });
+
+    window.addEventListener("touchmove", function (event) {
+      var delta;
+      var progress;
+
+      if (!isPulling || !event.touches.length) {
+        return;
+      }
+
+      delta = event.touches[0].clientY - startY;
+      if (delta <= 0) {
+        resetPullRefreshIndicator();
+        isPulling = false;
+        return;
+      }
+
+      if (window.scrollY !== 0) {
+        return;
+      }
+
+      currentPull = delta;
+      progress = Math.min(delta * 0.45, 44);
+      setPullRefreshIndicator(delta >= threshold ? "離して更新" : "下に引いて更新", progress, true);
+
+      if (delta > 12) {
+        event.preventDefault();
+      }
+    }, { passive: false });
+
+    window.addEventListener("touchend", function () {
+      if (!isPulling) {
+        return;
+      }
+
+      isPulling = false;
+      if (currentPull >= threshold) {
+        performPullRefresh();
+      } else {
+        resetPullRefreshIndicator();
+      }
+    });
+
+    window.addEventListener("touchcancel", function () {
+      isPulling = false;
+      resetPullRefreshIndicator();
     });
   }
 
@@ -916,10 +1129,12 @@
 
     applyTheme(initialTheme(), false);
     bindThemeControl();
+    bindServiceWorkerReload();
     bindTabs();
     bindBackupControls();
     bindDateEditControls();
     initForms();
+    bindPullRefresh();
 
     window.BioLogDB.openDB()
       .then(function (db) {
