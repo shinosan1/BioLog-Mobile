@@ -37,12 +37,20 @@
   }
 
   function showMessage(target, message, type) {
+    if (!target) {
+      return;
+    }
+
     target.textContent = message;
     target.className = "message message-" + type;
     target.hidden = false;
   }
 
   function clearMessage(target) {
+    if (!target) {
+      return;
+    }
+
     target.textContent = "";
     target.hidden = true;
   }
@@ -181,6 +189,11 @@
       form.appendChild(wrapper);
     });
 
+    var submitMessage = createEl("div", "message");
+    submitMessage.dataset.role = "submit-message";
+    submitMessage.hidden = true;
+    form.appendChild(submitMessage);
+
     var actions = createEl("div", "form-actions");
     var submit = document.createElement("button");
     submit.type = "submit";
@@ -198,6 +211,12 @@
     }
 
     form.appendChild(actions);
+    form.addEventListener("input", function () {
+      clearFormErrors(form);
+    });
+    form.addEventListener("change", function () {
+      clearFormErrors(form);
+    });
     return form;
   }
 
@@ -208,13 +227,20 @@
   }
 
   function showFormErrors(form, errors) {
-    var error = form.querySelector("[data-role='form-error']");
-    showMessage(error, errors.join("\n"), "error");
+    showFormMessage(form, errors.join("\n"), "error");
+  }
+
+  function showFormMessage(form, message, type) {
+    var target = form.querySelector("[data-role='submit-message']") ||
+      form.querySelector("[data-role='form-error']");
+    showMessage(target, message, type);
   }
 
   function clearFormErrors(form) {
     var error = form.querySelector("[data-role='form-error']");
+    var submitMessage = form.querySelector("[data-role='submit-message']");
     clearMessage(error);
+    clearMessage(submitMessage);
   }
 
   function activateView(viewName) {
@@ -459,10 +485,10 @@
     window.BioLogDB.upsertRecord(payload).then(function (record) {
       state.todayRecord = record;
       window.BioLogForm.fillFormFromRecord(form, record);
-      showMessage(els.todayMessage, "保存しました。", "success");
+      showFormMessage(form, "記録しました。", "success");
       return Promise.all([renderTopTodaySummary(), renderSummary(), refreshGraphsIfVisible(), renderStorageStatus()]);
     }).catch(function () {
-      showMessage(els.todayMessage, "保存に失敗しました。", "error");
+      showFormMessage(form, "保存に失敗しました。", "error");
     });
   }
 
@@ -607,14 +633,14 @@
     clearMessage(els.dateEditMessage);
 
     if (!state.dateEditLoaded || !state.dateEditDate) {
-      showMessage(els.dateEditMessage, "先に対象日を読み込んでください。", "error");
+      showFormMessage(form, "先に対象日を読み込んでください。", "error");
       return;
     }
 
     var payload = window.BioLogForm.buildPayloadFromForm(form);
     if (payload.date !== state.dateEditDate || els.dateEditDate.value !== state.dateEditDate) {
-      showMessage(els.dateEditMessage, "対象日が変更されています。もう一度読み込んでください。", "error");
       resetDateEditForm();
+      showFormMessage(form, "対象日が変更されています。もう一度読み込んでください。", "error");
       return;
     }
 
@@ -630,10 +656,10 @@
     window.BioLogDB.upsertRecord(payload).then(function (record) {
       state.dateEditRecord = record;
       window.BioLogForm.fillFormFromRecord(form, record);
-      showMessage(els.dateEditMessage, "保存しました。", "success");
+      showFormMessage(form, "保存しました。", "success");
       return Promise.all([loadTodayRecord(), renderHistory(), refreshGraphsIfVisible(), renderStorageStatus()]);
     }).catch(function () {
-      showMessage(els.dateEditMessage, "保存に失敗しました。", "error");
+      showFormMessage(form, "保存に失敗しました。", "error");
     });
   }
 
@@ -648,8 +674,12 @@
   }
 
   function cancelEdit() {
+    var form = document.getElementById("edit-form");
     state.editingDate = "";
     els.editFormHost.hidden = true;
+    if (form) {
+      clearFormErrors(form);
+    }
     clearMessage(els.historyMessage);
   }
 
@@ -668,12 +698,14 @@
       return;
     }
 
-    window.BioLogDB.upsertRecord(payload).then(function () {
-      showMessage(els.historyMessage, "更新しました。", "success");
-      cancelEdit();
+    window.BioLogDB.upsertRecord(payload).then(function (record) {
+      state.editingDate = record.date;
+      window.BioLogForm.fillFormFromRecord(form, record);
+      showFormMessage(form, "更新しました。", "success");
+      clearMessage(els.historyMessage);
       return Promise.all([loadTodayRecord(), renderHistory(), refreshGraphsIfVisible(), renderStorageStatus()]);
     }).catch(function () {
-      showMessage(els.historyMessage, "更新に失敗しました。", "error");
+      showFormMessage(form, "更新に失敗しました。", "error");
     });
   }
 
