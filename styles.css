@@ -83,6 +83,31 @@ button {
   gap: 18px;
 }
 
+.pull-refresh-indicator {
+  position: fixed;
+  top: calc(8px + env(safe-area-inset-top));
+  left: 50%;
+  z-index: 50;
+  min-width: 124px;
+  padding: 8px 14px;
+  border: 1px solid var(--line);
+  border-radius: 999px;
+  background: var(--surface);
+  color: var(--ink);
+  box-shadow: 0 10px 28px var(--shadow);
+  font-size: 0.82rem;
+  font-weight: 700;
+  text-align: center;
+  opacity: 0;
+  pointer-events: none;
+  transform: translate(-50%, -64px);
+  transition: opacity 0.16s ease, transform 0.16s ease;
+}
+
+.pull-refresh-indicator.is-active {
+  opacity: 1;
+}
+
 .app-header {
   display: flex;
   align-items: center;
@@ -530,6 +555,11 @@ button:focus-visible {
   height: auto;
   display: block;
   overflow: visible;
+  touch-action: pan-y;
+}
+
+.chart-hit-area {
+  opacity: 0;
 }
 
 .chart-axis {
@@ -550,7 +580,7 @@ button:focus-visible {
 
 .chart-point {
   stroke: var(--surface);
-  stroke-width: 1.5;
+  stroke-width: 1.75;
 }
 
 .chart-point-group {
@@ -587,6 +617,27 @@ button:focus-visible {
   fill: var(--surface);
   font-size: 0.58rem;
   font-weight: 650;
+}
+
+.chart-trace-layer {
+  opacity: 0;
+  pointer-events: none;
+}
+
+.chart-trace-layer.is-active {
+  opacity: 1;
+}
+
+.chart-trace-line {
+  stroke: var(--ink);
+  stroke-width: 1;
+  stroke-dasharray: 3 3;
+  opacity: 0.42;
+}
+
+.chart-trace-point {
+  stroke: var(--surface);
+  stroke-width: 2;
 }
 
 pre {
