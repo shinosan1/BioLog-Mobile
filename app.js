@@ -19,12 +19,6 @@
     { label: "体重", field: "weight", unit: "kg" },
     { label: "体温", field: "temperature", unit: "℃" },
     { label: "血圧", field: "blood_pressure", unit: "mmHg" },
-    { label: "脈拍", field: "pulse", unit: "回/分" }
-  ];
-  var SUMMARY_ITEMS = [
-    { label: "体重", field: "weight", unit: "kg" },
-    { label: "体温", field: "temperature", unit: "℃" },
-    { label: "血圧", field: "blood_pressure", unit: "mmHg" },
     { label: "脈拍", field: "pulse", unit: "回/分" },
     { label: "体脂肪率", field: "body_fat", unit: "%" },
     { label: "基礎代謝量", field: "bmr", unit: "kcal" },
@@ -624,48 +618,6 @@
     });
   }
 
-  function renderSummaryCard(record, sourceText) {
-    els.summaryPanel.innerHTML = "";
-
-    if (!record) {
-      els.summaryPanel.appendChild(createEl("p", "placeholder-text", "まだ記録がありません。"));
-      return;
-    }
-
-    var header = createEl("div", "summary-header");
-    header.appendChild(createEl("h3", "", "主要指標"));
-    header.appendChild(createEl("span", "summary-source", sourceText));
-    els.summaryPanel.appendChild(header);
-
-    var grid = createEl("div", "summary-grid");
-    SUMMARY_ITEMS.forEach(function (item) {
-      var metric = createEl("div", "summary-metric");
-      metric.appendChild(createEl("span", "summary-label", item.label));
-      metric.appendChild(createEl("strong", "summary-value", summaryMetricValue(record, item)));
-      metric.appendChild(createEl("span", "summary-unit", item.unit));
-      grid.appendChild(metric);
-    });
-    els.summaryPanel.appendChild(grid);
-  }
-
-  function renderSummary() {
-    var todayDate = state.todayDate || window.BioLogDB.localDateYYYYMMDD();
-
-    return window.BioLogDB.getRecordByDate(todayDate).then(function (todayRecord) {
-      if (todayRecord) {
-        state.todayRecord = todayRecord;
-        renderSummaryCard(todayRecord, "今日の記録");
-        return;
-      }
-
-      state.todayRecord = null;
-      renderSummaryCard(null, "");
-    }).catch(function () {
-      els.summaryPanel.innerHTML = "";
-      els.summaryPanel.appendChild(createEl("p", "placeholder-text", "サマリーを読み込めませんでした。"));
-    });
-  }
-
   function loadTodayRecord() {
     var form = document.getElementById("today-form");
     state.todayDate = window.BioLogDB.localDateYYYYMMDD();
@@ -675,7 +627,7 @@
     return window.BioLogDB.getRecordByDate(state.todayDate).then(function (record) {
       state.todayRecord = record || null;
       window.BioLogForm.fillFormFromRecord(form, record || { date: state.todayDate });
-      return Promise.all([renderTopTodaySummary(), renderSummary()]);
+      return renderTopTodaySummary();
     });
   }
 
@@ -699,7 +651,7 @@
       state.todayRecord = record;
       window.BioLogForm.fillFormFromRecord(form, record);
       showFormMessage(form, "記録しました。", "success");
-      return Promise.all([renderTopTodaySummary(), renderSummary(), refreshGraphsIfVisible(), renderStorageStatus()]);
+      return Promise.all([renderTopTodaySummary(), refreshGraphsIfVisible(), renderStorageStatus()]);
     }).catch(function () {
       showFormMessage(form, "保存に失敗しました。", "error");
     });
@@ -1094,7 +1046,6 @@
   function cacheElements() {
     els.status = document.getElementById("sw-status");
     els.topTodaySummary = document.getElementById("top-today-summary");
-    els.summaryPanel = document.getElementById("summary-panel");
     els.todayDateLabel = document.getElementById("today-date-label");
     els.todayMessage = document.getElementById("today-message");
     els.todayFormHost = document.getElementById("today-form-host");
