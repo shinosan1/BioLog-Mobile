@@ -17,7 +17,8 @@
     { title: "血圧", unit: "mmHg", field: "blood_pressure", color: "var(--green)" },
     { title: "脈拍", unit: "回/分", field: "pulse", color: "var(--red)" },
     { title: "体脂肪率", unit: "%", field: "body_fat", color: "var(--green)" },
-    { title: "基礎代謝量", unit: "kcal", field: "bmr", color: "var(--red)" }
+    { title: "基礎代謝量", unit: "kcal", field: "bmr", color: "var(--red)" },
+    { title: "筋肉量", unit: "kg", field: "muscle_mass", color: "var(--green)" }
   ];
 
   function createSvgEl(tagName) {
