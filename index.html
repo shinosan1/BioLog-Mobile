@@ -1,0 +1,133 @@
+<!doctype html>
+<html lang="ja">
+<head>
+  <meta charset="utf-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1, viewport-fit=cover">
+  <meta name="theme-color" content="#2E7D32">
+  <meta name="description" content="BioLog Mobile offline health log">
+  <title>BioLog Mobile</title>
+  <script>
+    (function () {
+      try {
+        var saved = localStorage.getItem("biolog_mobile_theme");
+        var theme = saved || (
+          window.matchMedia &&
+          window.matchMedia("(prefers-color-scheme: dark)").matches
+            ? "dark"
+            : "light"
+        );
+        document.documentElement.dataset.theme = theme;
+      } catch (error) {
+        document.documentElement.dataset.theme = "light";
+      }
+    }());
+  </script>
+  <link rel="manifest" href="./manifest.webmanifest">
+  <link rel="apple-touch-icon" href="./icons/icon-192.png">
+  <link rel="icon" type="image/png" sizes="192x192" href="./icons/icon-192.png">
+  <link rel="stylesheet" href="./styles.css">
+</head>
+<body>
+  <main class="app-shell">
+    <header class="app-header" aria-label="BioLog Mobile">
+      <img class="app-icon" src="./icons/icon-192.png" alt="" width="48" height="48">
+      <div class="app-title">
+        <h1>BioLog Mobile</h1>
+        <p>Offline-ready mobile health log</p>
+      </div>
+      <button type="button" id="theme-toggle" class="theme-toggle" aria-label="ダークモードに切り替え">ダーク</button>
+    </header>
+
+    <section class="status-panel" aria-live="polite">
+      <p class="eyebrow">BioLog Mobile</p>
+      <div id="top-today-summary" class="top-summary" aria-label="今日の主要指標"></div>
+      <p id="sw-status" class="status-message">起動中...</p>
+    </section>
+
+    <nav class="tab-nav" aria-label="Primary">
+      <button type="button" class="tab-button is-active" data-view-target="today">今日</button>
+      <button type="button" class="tab-button" data-view-target="date-edit">日付編集</button>
+      <button type="button" class="tab-button" data-view-target="history">履歴</button>
+      <button type="button" class="tab-button" data-view-target="graph">グラフ</button>
+      <button type="button" class="tab-button" data-view-target="backup">バックアップ</button>
+    </nav>
+
+    <section id="today-view" class="view-panel" data-view="today">
+      <div class="section-header">
+        <p class="eyebrow">Today</p>
+        <h2>今日の記録</h2>
+        <p id="today-date-label"></p>
+      </div>
+      <div id="summary-panel" class="summary-panel" aria-live="polite"></div>
+      <div id="today-message" class="message" hidden></div>
+      <div id="today-form-host"></div>
+    </section>
+
+    <section id="date-edit-view" class="view-panel" data-view="date-edit" hidden>
+      <div class="section-header">
+        <p class="eyebrow">Date Edit</p>
+        <h2>日付を指定して登録・編集</h2>
+      </div>
+      <div class="date-edit-controls">
+        <label class="field">
+          <span class="field-label">対象日</span>
+          <input type="date" id="date-edit-date">
+        </label>
+        <button type="button" id="date-edit-load-button" class="secondary-button">読み込む</button>
+      </div>
+      <div id="date-edit-message" class="message" hidden></div>
+      <div id="date-edit-form-host"></div>
+    </section>
+
+    <section id="history-view" class="view-panel" data-view="history" hidden>
+      <div class="section-header">
+        <p class="eyebrow">History</p>
+        <h2>履歴</h2>
+      </div>
+      <div id="history-message" class="message" hidden></div>
+      <div id="edit-form-host" hidden></div>
+      <div id="history-list" class="history-list"></div>
+    </section>
+
+    <section id="graph-view" class="view-panel" data-view="graph" hidden>
+      <div class="section-header">
+        <p class="eyebrow">Graph</p>
+        <h2>グラフ</h2>
+      </div>
+      <div id="graph-message" class="message" hidden></div>
+      <div id="graph-list" class="chart-list"></div>
+    </section>
+
+    <section id="backup-view" class="view-panel" data-view="backup" hidden>
+      <div class="section-header">
+        <p class="eyebrow">Backup</p>
+        <h2>バックアップ</h2>
+      </div>
+      <div id="backup-message" class="message" hidden></div>
+      <div class="backup-actions">
+        <button type="button" id="export-json-button" class="primary-button">JSONを書き出す</button>
+        <label class="file-field">
+          <span class="field-label">JSONファイル</span>
+          <input type="file" id="import-json-file" accept="application/json,.json">
+        </label>
+        <button type="button" id="import-json-button" class="secondary-button" disabled>JSONを読み込む</button>
+        <label class="file-field">
+          <span class="field-label">CSVファイル</span>
+          <input type="file" id="import-csv-file" accept=".csv,text/csv">
+        </label>
+        <button type="button" id="import-csv-button" class="secondary-button" disabled>CSVを読み込む</button>
+        <button type="button" id="delete-all-button" class="danger-button">全データ削除</button>
+      </div>
+    </section>
+  </main>
+
+  <script src="./db.js" defer></script>
+  <script src="./form.js" defer></script>
+  <script src="./backup.js" defer></script>
+  <script src="./charts.js" defer></script>
+  <script src="./csv.js" defer></script>
+  <script src="./app.js" defer></script>
+</body>
+</html>
+
+
