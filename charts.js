@@ -146,17 +146,36 @@
     return y < PADDING.top + 30 ? y + 14 : y - 38;
   }
 
+  function traceTooltipX(x, width) {
+    if (x > WIDTH - width - 12) {
+      return x - width - 10;
+    }
+    if (x < PADDING.left + 20) {
+      return x + 10;
+    }
+    return x - width / 2;
+  }
+
+  function traceTooltipY(y, height) {
+    if (y < PADDING.top + height + 10) {
+      return Math.min(y + 14, HEIGHT - PADDING.bottom - height - 4);
+    }
+    return Math.max(PADDING.top + 4, y - height - 10);
+  }
+
   function hideTooltip(group) {
     group.classList.remove("is-active");
   }
 
+  function hideActivePointTooltips(svg) {
+    Array.prototype.forEach.call(svg.querySelectorAll(".chart-point-group.is-active"), function (activeGroup) {
+      hideTooltip(activeGroup);
+    });
+  }
+
   function showTooltip(group) {
     var svg = group.ownerSVGElement;
-    Array.prototype.forEach.call(svg.querySelectorAll(".chart-point-group.is-active"), function (activeGroup) {
-      if (activeGroup !== group) {
-        hideTooltip(activeGroup);
-      }
-    });
+    hideActivePointTooltips(svg);
     group.classList.add("is-active");
   }
 
@@ -174,7 +193,7 @@
     group.appendChild(setAttrs(createSvgEl("circle"), {
       cx: x,
       cy: y,
-      r: 3,
+      r: 4.5,
       class: "chart-point",
       fill: series.color
     }));
@@ -182,7 +201,7 @@
     group.appendChild(setAttrs(createSvgEl("circle"), {
       cx: x,
       cy: y,
-      r: 13,
+      r: 16,
       class: "chart-point-hit",
       fill: "transparent",
       "pointer-events": "all"
@@ -239,7 +258,10 @@
         x: x,
         y: y,
         date: point.date,
-        value: point.value
+        value: point.value,
+        label: series.label,
+        unit: series.unit,
+        color: series.color
       };
     });
 
@@ -254,6 +276,13 @@
     points.forEach(function (point) {
       svg.appendChild(createPointGroup(point, series, point.x, point.y));
     });
+
+    return {
+      label: series.label,
+      unit: series.unit,
+      color: series.color,
+      points: points
+    };
   }
 
   function uniqueDates(seriesList) {
@@ -268,6 +297,199 @@
       });
     });
     return dates.sort();
+  }
+
+  function pointerPosition(svg, event) {
+    var rect = svg.getBoundingClientRect();
+    var width = rect.width || WIDTH;
+    var height = rect.height || HEIGHT;
+
+    return {
+      x: (event.clientX - rect.left) * WIDTH / width,
+      y: (event.clientY - rect.top) * HEIGHT / height
+    };
+  }
+
+  function nearestTraceItem(items, x) {
+    return items.reduce(function (nearest, item) {
+      if (!nearest || Math.abs(item.x - x) < Math.abs(nearest.x - x)) {
+        return item;
+      }
+      return nearest;
+    }, null);
+  }
+
+  function buildTraceItems(dates, renderedSeries) {
+    return dates.map(function (date, index) {
+      var entries = [];
+      renderedSeries.forEach(function (series) {
+        series.points.forEach(function (point) {
+          if (point.date === date) {
+            entries.push(point);
+          }
+        });
+      });
+
+      return {
+        date: date,
+        x: xFor(index, dates.length),
+        entries: entries
+      };
+    }).filter(function (item) {
+      return item.entries.length > 0;
+    });
+  }
+
+  function renderTraceTooltip(tooltip, item) {
+    var width = 132;
+    var height = 17 + item.entries.length * 13;
+    var topY = Math.min.apply(Math, item.entries.map(function (entry) {
+      return entry.y;
+    }));
+    var transform = "translate(" + traceTooltipX(item.x, width) + " " + traceTooltipY(topY, height) + ")";
+
+    tooltip.textContent = "";
+    tooltip.setAttribute("transform", transform);
+    tooltip.appendChild(setAttrs(createSvgEl("rect"), {
+      width: width,
+      height: height,
+      rx: 5,
+      ry: 5,
+      class: "chart-tooltip-box"
+    }));
+    appendText(tooltip, item.date, {
+      x: 8,
+      y: 12,
+      class: "chart-tooltip-text"
+    });
+    item.entries.forEach(function (entry, index) {
+      appendText(tooltip, entry.label + ": " + formatPointValue(entry.value) + " " + entry.unit, {
+        x: 8,
+        y: 25 + index * 13,
+        class: "chart-tooltip-text"
+      });
+    });
+  }
+
+  function showTrace(svg, traceState, event) {
+    var position = pointerPosition(svg, event);
+    var item = nearestTraceItem(traceState.items, position.x);
+
+    if (!item) {
+      return;
+    }
+
+    hideActivePointTooltips(svg);
+    traceState.group.classList.add("is-active");
+    setAttrs(traceState.line, {
+      x1: item.x,
+      y1: PADDING.top,
+      x2: item.x,
+      y2: HEIGHT - PADDING.bottom
+    });
+
+    traceState.points.textContent = "";
+    item.entries.forEach(function (entry) {
+      traceState.points.appendChild(setAttrs(createSvgEl("circle"), {
+        cx: entry.x,
+        cy: entry.y,
+        r: 5.8,
+        class: "chart-trace-point",
+        fill: entry.color
+      }));
+    });
+    renderTraceTooltip(traceState.tooltip, item);
+  }
+
+  function hideTrace(traceState) {
+    traceState.group.classList.remove("is-active");
+    traceState.points.textContent = "";
+  }
+
+  function bindTrace(svg, traceState) {
+    var activePointerId = null;
+
+    svg.addEventListener("pointerdown", function (event) {
+      activePointerId = event.pointerId;
+      if (svg.setPointerCapture) {
+        svg.setPointerCapture(event.pointerId);
+      }
+      showTrace(svg, traceState, event);
+    });
+
+    svg.addEventListener("pointermove", function (event) {
+      if (activePointerId === null || activePointerId === event.pointerId) {
+        showTrace(svg, traceState, event);
+      }
+    });
+
+    svg.addEventListener("pointerleave", function () {
+      if (activePointerId === null) {
+        hideTrace(traceState);
+      }
+    });
+
+    svg.addEventListener("pointerup", function (event) {
+      if (activePointerId === event.pointerId) {
+        if (svg.releasePointerCapture) {
+          svg.releasePointerCapture(event.pointerId);
+        }
+        activePointerId = null;
+        hideTrace(traceState);
+      }
+    });
+
+    svg.addEventListener("pointercancel", function (event) {
+      if (activePointerId === event.pointerId) {
+        if (svg.releasePointerCapture) {
+          svg.releasePointerCapture(event.pointerId);
+        }
+        activePointerId = null;
+      }
+      hideTrace(traceState);
+    });
+  }
+
+  function appendTraceLayer(svg, dates, renderedSeries) {
+    var traceItems = buildTraceItems(dates, renderedSeries);
+    var group;
+    var line;
+    var points;
+    var tooltip;
+
+    if (!traceItems.length) {
+      return;
+    }
+
+    group = setAttrs(createSvgEl("g"), {
+      class: "chart-trace-layer",
+      "aria-hidden": "true"
+    });
+    line = setAttrs(createSvgEl("line"), {
+      class: "chart-trace-line",
+      x1: PADDING.left,
+      y1: PADDING.top,
+      x2: PADDING.left,
+      y2: HEIGHT - PADDING.bottom
+    });
+    points = setAttrs(createSvgEl("g"), {
+      class: "chart-trace-points"
+    });
+    tooltip = setAttrs(createSvgEl("g"), {
+      class: "chart-trace-tooltip"
+    });
+
+    group.appendChild(line);
+    group.appendChild(points);
+    group.appendChild(tooltip);
+    svg.appendChild(group);
+    bindTrace(svg, {
+      items: traceItems,
+      group: group,
+      line: line,
+      points: points,
+      tooltip: tooltip
+    });
   }
 
   function renderLineChart(options) {
@@ -289,12 +511,23 @@
 
     var dates = uniqueDates(seriesList);
     var bounds = scaleBounds(values);
+    var renderedSeries = [];
     var svg = setAttrs(createSvgEl("svg"), {
       viewBox: "0 0 " + WIDTH + " " + HEIGHT,
       role: "img",
       "aria-label": options.title + "の推移"
     });
     svg.classList.add("chart-svg");
+
+    svg.appendChild(setAttrs(createSvgEl("rect"), {
+      x: PADDING.left,
+      y: PADDING.top,
+      width: WIDTH - PADDING.left - PADDING.right,
+      height: HEIGHT - PADDING.top - PADDING.bottom,
+      class: "chart-hit-area",
+      fill: "transparent",
+      "pointer-events": "all"
+    }));
 
     addLine(svg, PADDING.left, PADDING.top, PADDING.left, HEIGHT - PADDING.bottom, "chart-axis");
     addLine(svg, PADDING.left, HEIGHT - PADDING.bottom, WIDTH - PADDING.right, HEIGHT - PADDING.bottom, "chart-axis");
@@ -325,8 +558,9 @@
     });
 
     seriesList.forEach(function (series) {
-      renderSeries(svg, series, dates, bounds);
+      renderedSeries.push(renderSeries(svg, series, dates, bounds));
     });
+    appendTraceLayer(svg, dates, renderedSeries);
 
     wrapper.appendChild(svg);
     return wrapper;
