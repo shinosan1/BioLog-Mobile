@@ -232,6 +232,9 @@
     if (viewName === "graph") {
       renderGraphs();
     }
+    if (viewName === "backup") {
+      renderStorageStatus();
+    }
   }
 
   function isGraphViewActive() {
@@ -244,6 +247,69 @@
       return renderGraphs();
     }
     return Promise.resolve();
+  }
+
+  function isStandaloneLaunch() {
+    var iosStandalone = window.navigator && window.navigator.standalone === true;
+    var displayStandalone = window.matchMedia &&
+      window.matchMedia("(display-mode: standalone)").matches;
+    return !!(iosStandalone || displayStandalone);
+  }
+
+  function currentOriginText() {
+    var origin = window.location && window.location.origin ? window.location.origin : "";
+    return origin && origin !== "null" ? origin : "不明";
+  }
+
+  function storageStatusRow(label, value) {
+    var row = createEl("div", "storage-status-row");
+    row.appendChild(createEl("span", "storage-status-label", label));
+    row.appendChild(createEl("strong", "storage-status-value", value));
+    return row;
+  }
+
+  function renderStorageStatus() {
+    if (!els.storageStatusList) {
+      return Promise.resolve();
+    }
+
+    return window.BioLogDB.getAllRecords().then(function (records) {
+      var count = records.length;
+      var isStandalone = isStandaloneLaunch();
+      els.storageStatusList.textContent = "";
+      els.storageStatusList.appendChild(storageStatusRow("起動状態", isStandalone ? "ホーム画面" : "ブラウザ"));
+      els.storageStatusList.appendChild(storageStatusRow("保存件数", String(count) + "件"));
+      els.storageStatusList.appendChild(storageStatusRow("保存先", currentOriginText()));
+      els.storageStatusList.appendChild(storageStatusRow("DB名", "biolog_mobile"));
+
+      if (els.storageStatusWarning) {
+        if (isStandalone && count === 0) {
+          showMessage(
+            els.storageStatusWarning,
+            "ホーム画面版で見えている記録が0件です。Safari側に記録が残っている場合は、SafariでJSONを書き出し、このホーム画面版でJSONを読み込んでください。ホーム画面アイコンを削除・再追加する前にも、必ずJSONバックアップを作成してください。",
+            "error"
+          );
+        } else {
+          clearMessage(els.storageStatusWarning);
+        }
+      }
+    }).catch(function () {
+      els.storageStatusList.textContent = "";
+      els.storageStatusList.appendChild(storageStatusRow("保存状態", "読み込めませんでした"));
+      if (els.storageStatusWarning) {
+        clearMessage(els.storageStatusWarning);
+      }
+    });
+  }
+
+  function showStartupStorageHint() {
+    return window.BioLogDB.getAllRecords().then(function (records) {
+      if (isStandaloneLaunch() && records.length === 0) {
+        setStatus("ホーム画面版で見える記録が0件です。Safari側に記録がある場合はJSONバックアップで移してください。");
+      }
+    }).catch(function () {
+      return;
+    });
   }
 
   function hasValue(record, field) {
@@ -394,7 +460,7 @@
       state.todayRecord = record;
       window.BioLogForm.fillFormFromRecord(form, record);
       showMessage(els.todayMessage, "保存しました。", "success");
-      return Promise.all([renderTopTodaySummary(), renderSummary(), refreshGraphsIfVisible()]);
+      return Promise.all([renderTopTodaySummary(), renderSummary(), refreshGraphsIfVisible(), renderStorageStatus()]);
     }).catch(function () {
       showMessage(els.todayMessage, "保存に失敗しました。", "error");
     });
@@ -565,7 +631,7 @@
       state.dateEditRecord = record;
       window.BioLogForm.fillFormFromRecord(form, record);
       showMessage(els.dateEditMessage, "保存しました。", "success");
-      return Promise.all([loadTodayRecord(), renderHistory(), refreshGraphsIfVisible()]);
+      return Promise.all([loadTodayRecord(), renderHistory(), refreshGraphsIfVisible(), renderStorageStatus()]);
     }).catch(function () {
       showMessage(els.dateEditMessage, "保存に失敗しました。", "error");
     });
@@ -605,7 +671,7 @@
     window.BioLogDB.upsertRecord(payload).then(function () {
       showMessage(els.historyMessage, "更新しました。", "success");
       cancelEdit();
-      return Promise.all([loadTodayRecord(), renderHistory(), refreshGraphsIfVisible()]);
+      return Promise.all([loadTodayRecord(), renderHistory(), refreshGraphsIfVisible(), renderStorageStatus()]);
     }).catch(function () {
       showMessage(els.historyMessage, "更新に失敗しました。", "error");
     });
@@ -621,7 +687,7 @@
         resetDateEditForm();
       }
       showMessage(els.historyMessage, "削除しました。", "success");
-      return Promise.all([loadTodayRecord(), renderHistory(), refreshGraphsIfVisible()]);
+      return Promise.all([loadTodayRecord(), renderHistory(), refreshGraphsIfVisible(), renderStorageStatus()]);
     }).catch(function () {
       showMessage(els.historyMessage, "削除に失敗しました。", "error");
     });
@@ -634,6 +700,7 @@
       var fileName = window.BioLogBackup.makeExportFileName();
       window.BioLogBackup.downloadJson(payload, fileName);
       showMessage(els.backupMessage, fileName + " を書き出しました。", "success");
+      return renderStorageStatus();
     }).catch(function () {
       showMessage(els.backupMessage, "JSONの書き出しに失敗しました。", "error");
     });
@@ -669,7 +736,7 @@
       showMessage(els.backupMessage, result.imported + "件を読み込みました。追加: " + result.added + " / 更新: " + result.updated, "success");
       els.importFile.value = "";
       els.importButton.disabled = true;
-      return Promise.all([loadTodayRecord(), renderHistory(), refreshGraphsIfVisible()]);
+      return Promise.all([loadTodayRecord(), renderHistory(), refreshGraphsIfVisible(), renderStorageStatus()]);
     }).catch(function (error) {
       showMessage(els.backupMessage, error.message || "JSONの読み込みに失敗しました。", "error");
     });
@@ -689,7 +756,7 @@
       showMessage(els.backupMessage, result.imported + "件のCSVを読み込みました。追加: " + result.added + " / 更新: " + result.updated, "success");
       els.csvFile.value = "";
       els.csvButton.disabled = true;
-      return Promise.all([loadTodayRecord(), renderHistory(), refreshGraphsIfVisible()]);
+      return Promise.all([loadTodayRecord(), renderHistory(), refreshGraphsIfVisible(), renderStorageStatus()]);
     }).catch(function (error) {
       showMessage(els.backupMessage, error.message || "CSVの読み込みに失敗しました。", "error");
     });
@@ -707,7 +774,7 @@
       cancelEdit();
       resetDateEditForm();
       showMessage(els.backupMessage, "すべての記録を削除しました。", "success");
-      return Promise.all([loadTodayRecord(), renderHistory(), refreshGraphsIfVisible()]);
+      return Promise.all([loadTodayRecord(), renderHistory(), refreshGraphsIfVisible(), renderStorageStatus()]);
     }).catch(function () {
       showMessage(els.backupMessage, "全削除に失敗しました。", "error");
     });
@@ -716,15 +783,15 @@
   function registerServiceWorker() {
     if (!("serviceWorker" in navigator)) {
       setStatus("端末内に保存できます。");
-      return;
+      return Promise.resolve();
     }
 
     if (!window.isSecureContext) {
       setStatus("端末内に保存できます。");
-      return;
+      return Promise.resolve();
     }
 
-    navigator.serviceWorker.register("./service-worker.js", { scope: "./" })
+    return navigator.serviceWorker.register("./service-worker.js", { scope: "./" })
       .then(function () {
         setStatus("端末内に保存できます。オフライン起動の準備も完了しました。");
       })
@@ -796,6 +863,8 @@
     els.graphList = document.getElementById("graph-list");
     els.editFormHost = document.getElementById("edit-form-host");
     els.backupMessage = document.getElementById("backup-message");
+    els.storageStatusList = document.getElementById("storage-status-list");
+    els.storageStatusWarning = document.getElementById("storage-status-warning");
     els.exportButton = document.getElementById("export-json-button");
     els.importFile = document.getElementById("import-json-file");
     els.importButton = document.getElementById("import-json-button");
@@ -823,8 +892,10 @@
     window.BioLogDB.openDB()
       .then(function (db) {
         db.close();
-        registerServiceWorker();
-        return loadTodayRecord();
+        return registerServiceWorker();
+      })
+      .then(function () {
+        return Promise.all([loadTodayRecord(), renderStorageStatus(), showStartupStorageHint()]);
       })
       .catch(function () {
         setStatus("保存機能の起動に失敗しました。");

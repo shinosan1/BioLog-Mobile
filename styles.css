@@ -437,6 +437,48 @@ button:focus-visible {
   text-underline-offset: 3px;
 }
 
+.storage-status-panel {
+  border: 1px solid var(--line);
+  border-radius: 8px;
+  background: var(--chip-bg);
+  padding: 12px;
+  display: grid;
+  gap: 10px;
+}
+
+.storage-status-header {
+  display: flex;
+  justify-content: space-between;
+  gap: 12px;
+  align-items: baseline;
+}
+
+.storage-status-note,
+.storage-status-label {
+  color: var(--muted);
+  font-size: 0.78rem;
+}
+
+.storage-status-list {
+  display: grid;
+  gap: 7px;
+}
+
+.storage-status-row {
+  display: flex;
+  justify-content: space-between;
+  gap: 12px;
+  align-items: baseline;
+}
+
+.storage-status-value {
+  min-width: 0;
+  color: var(--ink);
+  font-size: 0.88rem;
+  overflow-wrap: anywhere;
+  text-align: right;
+}
+
 .chart-list,
 .chart-card,
 .chart-body {
@@ -686,6 +728,15 @@ html[data-theme="dark"] .readme-card {
 .readme-steps {
   display: grid;
   gap: 8px;
+}
+
+.readme-license-text {
+  margin: 0;
+  white-space: pre-wrap;
+  color: var(--muted);
+  font-family: ui-monospace, SFMono-Regular, Consolas, monospace;
+  font-size: 0.82rem;
+  line-height: 1.65;
 }
 
 @media (max-width: 560px) {
