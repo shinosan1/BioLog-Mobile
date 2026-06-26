@@ -190,11 +190,6 @@ h3 {
   gap: 5px;
 }
 
-.summary-panel {
-  display: grid;
-  gap: 12px;
-}
-
 .top-summary {
   display: grid;
   gap: 10px;
@@ -215,7 +210,7 @@ h3 {
 
 .top-summary-grid {
   display: grid;
-  grid-template-columns: repeat(4, minmax(0, 1fr));
+  grid-template-columns: repeat(2, minmax(0, 1fr));
   gap: 8px;
 }
 
@@ -245,48 +240,6 @@ h3 {
 .top-summary-unit {
   color: var(--muted);
   font-size: 0.74rem;
-}
-
-.summary-header {
-  display: flex;
-  justify-content: space-between;
-  gap: 12px;
-  align-items: baseline;
-}
-
-.summary-source,
-.summary-unit {
-  color: var(--muted);
-  font-size: 0.8rem;
-}
-
-.summary-grid {
-  display: grid;
-  grid-template-columns: repeat(2, minmax(0, 1fr));
-  gap: 10px;
-}
-
-.summary-metric {
-  min-width: 0;
-  border: 1px solid var(--line);
-  border-radius: 8px;
-  background: var(--chip-bg);
-  padding: 10px;
-  display: grid;
-  gap: 4px;
-}
-
-.summary-label {
-  color: var(--muted);
-  font-size: 0.82rem;
-  font-weight: 650;
-}
-
-.summary-value {
-  color: var(--ink);
-  font-size: 1.15rem;
-  line-height: 1.15;
-  overflow-wrap: anywhere;
 }
 
 .tab-nav {
@@ -654,8 +607,7 @@ pre {
     align-items: flex-start;
   }
 
-  .top-summary-grid,
-  .summary-grid {
+  .top-summary-grid {
     grid-template-columns: 1fr;
   }
 
