@@ -1,0 +1,48 @@
+<!doctype html>
+<html lang="ja">
+<head>
+  <meta charset="utf-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1">
+  <title>BioLog Mobile Test</title>
+  <link rel="stylesheet" href="./styles.css">
+</head>
+<body>
+  <main class="app-shell">
+    <header class="app-header">
+      <img class="app-icon" src="./icons/icon-192.png" alt="" width="48" height="48">
+      <div>
+        <h1>BioLog Test</h1>
+        <p>Phase6 browser checks</p>
+      </div>
+    </header>
+    <section class="status-panel">
+      <p class="eyebrow">Phase 6</p>
+      <h2>Test Results</h2>
+      <pre id="test-output">Running...</pre>
+    </section>
+  </main>
+  <form id="fixture-form" hidden>
+    <input name="date">
+    <input name="weight">
+    <input name="temperature">
+    <input name="systolic_bp">
+    <input name="diastolic_bp">
+    <input name="pulse">
+    <input name="body_fat">
+    <input name="bmr">
+    <input name="muscle_mass">
+    <textarea name="meal_detail"></textarea>
+    <textarea name="activity_log"></textarea>
+    <textarea name="memo"></textarea>
+  </form>
+  <script>
+    window.BIOLOG_DB_NAME = "biolog_mobile_test";
+  </script>
+  <script src="./db.js"></script>
+  <script src="./form.js"></script>
+  <script src="./backup.js"></script>
+  <script src="./charts.js"></script>
+  <script src="./csv.js"></script>
+  <script src="./test.js"></script>
+</body>
+</html>
