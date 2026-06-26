@@ -1,0 +1,111 @@
+<!doctype html>
+<html lang="ja">
+<head>
+  <meta charset="utf-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1, viewport-fit=cover">
+  <meta name="theme-color" content="#2E7D32">
+  <meta name="description" content="BioLog Mobile guide">
+  <title>BioLog Mobile Guide</title>
+  <script>
+    (function () {
+      try {
+        var saved = localStorage.getItem("biolog_mobile_theme");
+        var theme = saved || (
+          window.matchMedia &&
+          window.matchMedia("(prefers-color-scheme: dark)").matches
+            ? "dark"
+            : "light"
+        );
+        document.documentElement.dataset.theme = theme;
+      } catch (error) {
+        document.documentElement.dataset.theme = "light";
+      }
+    }());
+  </script>
+  <link rel="icon" type="image/png" sizes="192x192" href="./icons/icon-192.png">
+  <link rel="stylesheet" href="./styles.css">
+</head>
+<body class="readme-page">
+  <main class="readme-shell">
+    <header class="readme-hero">
+      <a class="readme-back" href="./index.html">BioLog Mobileへ戻る</a>
+      <div class="readme-hero-title">
+        <img class="app-icon" src="./icons/icon-192.png" alt="" width="56" height="56">
+        <div>
+          <p class="eyebrow">Guide</p>
+          <h1>BioLog Mobile</h1>
+          <p>スマホで使う、オフライン対応の健康記録PWAです。</p>
+        </div>
+      </div>
+    </header>
+
+    <section class="readme-card readme-alert">
+      <p class="eyebrow">Disclaimer</p>
+      <h2>免責事項</h2>
+      <p>BioLog Mobile は日々の健康記録を補助するための個人向けツールです。医療行為、診断、治療、助言を目的としたものではありません。</p>
+      <p>体調不良、異常値、健康上の不安がある場合は、医師などの専門家に相談してください。</p>
+    </section>
+
+    <section class="readme-grid">
+      <article class="readme-card">
+        <p class="eyebrow">PWA</p>
+        <h2>アプリのように使えます</h2>
+        <p>公開URLをブラウザで開き、ホーム画面に追加して使います。App Store や Google Play からインストールするアプリではありません。</p>
+      </article>
+      <article class="readme-card">
+        <p class="eyebrow">Storage</p>
+        <h2>端末内に保存</h2>
+        <p>記録は端末のブラウザ内 IndexedDB に保存されます。外部サーバーには送信されません。</p>
+      </article>
+    </section>
+
+    <section class="readme-card">
+      <p class="eyebrow">Features</p>
+      <h2>主な機能</h2>
+      <ul class="readme-list">
+        <li>今日の健康記録入力</li>
+        <li>日付を指定した新規登録、編集</li>
+        <li>履歴の確認、編集、削除</li>
+        <li>体重、体温、血圧、脈拍、体脂肪率、基礎代謝量、筋肉量のグラフ表示</li>
+        <li>JSONバックアップ書き出し、読み込み</li>
+        <li>UTF-8 CSV読み込み</li>
+        <li>ライトモード / ダークモード</li>
+      </ul>
+    </section>
+
+    <section class="readme-card">
+      <p class="eyebrow">How To Use</p>
+      <h2>基本操作</h2>
+      <div class="readme-steps">
+        <p><strong>今日:</strong> 今日の測定値や食事ログ、行動ログ、メモを保存します。</p>
+        <p><strong>日付編集:</strong> 対象日を選んで読み込み、過去日や任意の日付を登録・編集します。</p>
+        <p><strong>履歴:</strong> 保存済み記録の確認、編集、削除を行います。</p>
+        <p><strong>グラフ:</strong> 記録済みデータの推移を確認します。</p>
+        <p><strong>バックアップ:</strong> JSONの書き出し、JSON/CSVの読み込み、全データ削除を行います。</p>
+      </div>
+    </section>
+
+    <section class="readme-card">
+      <p class="eyebrow">Backup</p>
+      <h2>バックアップは大切です</h2>
+      <p>ブラウザのサイトデータを削除すると、保存した記録も削除されます。機種変更、ブラウザ変更、端末初期化の前には、必ずJSONバックアップを書き出してください。</p>
+      <p>バックアップJSONや個人データを含むCSVは、GitHubなどの公開場所へアップロードしないでください。</p>
+    </section>
+
+    <section class="readme-card">
+      <p class="eyebrow">CSV</p>
+      <h2>CSV読み込み</h2>
+      <p>UTF-8 CSVを読み込めます。既存BioLogの一覧タブから書き出したCSVにも対応しています。</p>
+      <p>CSVは外部データ取り込み用です。完全な復元用途にはJSONバックアップを使ってください。</p>
+    </section>
+
+    <section class="readme-card">
+      <p class="eyebrow">License</p>
+      <h2>ライセンス</h2>
+      <p>このプロジェクトは MIT License で公開しています。</p>
+      <p>Copyright (c) 2026 shinosan1</p>
+      <p><a href="./LICENSE">LICENSEを開く</a></p>
+    </section>
+  </main>
+</body>
+</html>

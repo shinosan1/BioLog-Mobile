@@ -19,6 +19,7 @@
   --error-line: #f2b8b5;
   --error-bg: #fff0ef;
   --chip-bg: #f8fbf7;
+  --readme-glow: rgba(46, 125, 50, 0.10);
 }
 
 html[data-theme="dark"] {
@@ -42,6 +43,7 @@ html[data-theme="dark"] {
   --error-line: #7f332d;
   --error-bg: #281513;
   --chip-bg: #101811;
+  --readme-glow: rgba(109, 207, 121, 0.10);
 }
 
 * {
@@ -585,4 +587,113 @@ pre {
 
 .file-field input[type="file"] {
   padding: 9px;
+}
+
+.readme-page {
+  background:
+    linear-gradient(180deg, var(--readme-glow), var(--bg) 34%),
+    var(--bg);
+}
+
+.readme-shell {
+  width: min(100%, 760px);
+  min-height: 100svh;
+  margin: 0 auto;
+  padding: 24px 16px calc(28px + env(safe-area-inset-bottom));
+  display: grid;
+  gap: 16px;
+}
+
+.readme-hero,
+.readme-card {
+  border: 1px solid var(--line);
+  border-radius: 8px;
+  background: var(--surface);
+  box-shadow: 0 16px 42px rgba(16, 42, 22, 0.08);
+}
+
+html[data-theme="dark"] .readme-hero,
+html[data-theme="dark"] .readme-card {
+  box-shadow: 0 16px 42px rgba(0, 0, 0, 0.28);
+}
+
+.readme-hero {
+  padding: 18px;
+  display: grid;
+  gap: 18px;
+}
+
+.readme-hero-title {
+  display: flex;
+  align-items: center;
+  gap: 14px;
+}
+
+.readme-hero-title p {
+  color: var(--muted);
+}
+
+.readme-back {
+  justify-self: start;
+  color: var(--green);
+  font-weight: 700;
+  text-decoration-thickness: 1px;
+  text-underline-offset: 3px;
+}
+
+.readme-card {
+  padding: 18px;
+  display: grid;
+  gap: 10px;
+}
+
+.readme-card p,
+.readme-card li {
+  line-height: 1.65;
+}
+
+.readme-card p,
+.readme-list {
+  color: var(--muted);
+}
+
+.readme-card h2 {
+  font-size: 1.18rem;
+}
+
+.readme-card a {
+  color: var(--green);
+  font-weight: 700;
+  text-decoration-thickness: 1px;
+  text-underline-offset: 3px;
+}
+
+.readme-alert {
+  border-color: var(--danger-line);
+}
+
+.readme-grid {
+  display: grid;
+  grid-template-columns: repeat(2, minmax(0, 1fr));
+  gap: 16px;
+}
+
+.readme-list {
+  margin: 0;
+  padding-left: 1.15rem;
+}
+
+.readme-steps {
+  display: grid;
+  gap: 8px;
+}
+
+@media (max-width: 560px) {
+  .readme-grid {
+    grid-template-columns: 1fr;
+  }
+
+  .readme-hero-title {
+    align-items: flex-start;
+  }
 }
