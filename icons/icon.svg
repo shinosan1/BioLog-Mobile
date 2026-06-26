@@ -1,4 +1,28 @@
 <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 512 512" role="img" aria-label="BioLog Mobile icon">
-  <rect width="512" height="512" rx="96" fill="#2E7D32"/>
-  <path fill="#E53935" d="M256 381c-9-8-18-16-27-24-72-64-119-106-119-164 0-47 36-82 82-82 26 0 51 12 64 32 13-20 38-32 64-32 46 0 82 35 82 82 0 58-47 100-119 164-9 8-18 16-27 24z"/>
+  <defs>
+    <linearGradient id="bg" x1="92" y1="32" x2="420" y2="480" gradientUnits="userSpaceOnUse">
+      <stop offset="0" stop-color="#7BCB83"/>
+      <stop offset="0.52" stop-color="#57B963"/>
+      <stop offset="1" stop-color="#369E45"/>
+    </linearGradient>
+    <radialGradient id="bgGlow" cx="35%" cy="24%" r="58%">
+      <stop offset="0" stop-color="#D7F6DB" stop-opacity="0.72"/>
+      <stop offset="1" stop-color="#D7F6DB" stop-opacity="0"/>
+    </radialGradient>
+    <linearGradient id="heart" x1="168" y1="112" x2="344" y2="390" gradientUnits="userSpaceOnUse">
+      <stop offset="0" stop-color="#FF7773"/>
+      <stop offset="0.5" stop-color="#F0443E"/>
+      <stop offset="1" stop-color="#B91E1B"/>
+    </linearGradient>
+    <filter id="heartShadow" x="-20%" y="-10%" width="140%" height="140%">
+      <feDropShadow dx="0" dy="18" stdDeviation="15" flood-color="#13551F" flood-opacity="0.35"/>
+      <feDropShadow dx="0" dy="5" stdDeviation="4" flood-color="#6D1512" flood-opacity="0.18"/>
+    </filter>
+  </defs>
+  <rect width="512" height="512" rx="96" fill="url(#bg)"/>
+  <rect width="512" height="512" rx="96" fill="url(#bgGlow)"/>
+  <path fill="#217A30" opacity="0.16" d="M96 428c52 34 124 50 203 39 75-10 134-42 171-91v40c0 53-43 96-96 96H96c-53 0-96-43-96-96v-38c22 19 53 36 96 50z"/>
+  <path filter="url(#heartShadow)" fill="url(#heart)" d="M256 386c-9-8-18-16-27-24-74-66-122-109-122-170 0-50 38-87 87-87 26 0 50 11 66 31 16-20 40-31 66-31 49 0 87 37 87 87 0 61-48 104-122 170-9 8-18 16-35 24z"/>
+  <path fill="#FFB1AD" opacity="0.78" d="M158 180c12-33 41-51 77-42 10 2 18 7 25 13-15-3-30-1-43 6-24 12-39 34-45 63-2 9-17 6-18-3-2-13-1-25 4-37z"/>
+  <path fill="#FFFFFF" opacity="0.34" d="M178 154c13-15 34-23 56-18 7 2 12 8 10 14-2 7-8 10-15 9-19-4-34 2-45 14-5 6-14 6-19 1-5-6-4-14 13-20z"/>
 </svg>
