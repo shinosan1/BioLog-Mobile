@@ -458,6 +458,11 @@
     ok("app uses local today date", appText.indexOf("localDateYYYYMMDD") !== -1);
     ok("app does not use utc date slice", appText.indexOf("toISOString().slice(0, 10)") === -1);
     ok("date edit mismatch guard", appText.indexOf("対象日が変更されています") !== -1);
+    ok(
+      "storage status identifies the site instead of a backup destination",
+      appText.indexOf('storageStatusRow("保存領域のサイト", currentOriginText())') !== -1 &&
+        appText.indexOf('storageStatusRow("保存先", currentOriginText())') === -1
+    );
     ok("app checks current consent", appText.indexOf("BioLogConsent.hasValidConsent") !== -1);
     ok("app saves consent before start", appText.indexOf("BioLogConsent.saveConsent") !== -1);
     var startApplicationText = appText.slice(

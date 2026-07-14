@@ -323,7 +323,7 @@
       els.storageStatusList.textContent = "";
       els.storageStatusList.appendChild(storageStatusRow("起動状態", isStandalone ? "ホーム画面" : "ブラウザ"));
       els.storageStatusList.appendChild(storageStatusRow("保存件数", String(count) + "件"));
-      els.storageStatusList.appendChild(storageStatusRow("保存先", currentOriginText()));
+      els.storageStatusList.appendChild(storageStatusRow("保存領域のサイト", currentOriginText()));
       els.storageStatusList.appendChild(storageStatusRow("DB名", "biolog_mobile"));
 
       if (els.storageStatusWarning) {

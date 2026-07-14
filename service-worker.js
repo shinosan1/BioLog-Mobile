@@ -1,4 +1,4 @@
-const CACHE_NAME = "biolog-mobile-v2.13.0";
+const CACHE_NAME = "biolog-mobile-v2.13.1";
 const CACHE_URLS = [
   "./",
   "./index.html",
