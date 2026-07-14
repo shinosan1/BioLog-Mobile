@@ -87,7 +87,27 @@ BioLog Mobile は日々の健康記録を補助するための個人向けツー
 
 ## 使い始め方
 
-### ローカルで確認する場合
+BioLog Mobile は、GitHub Pages で公開されている公開URLをスマホのブラウザで開いて利用します。通常の利用では、ローカルサーバーを起動する必要はありません。
+
+1. 公開URLをスマホのブラウザ（Android は Chrome、iPhone は Safari）で開きます。
+2. そのままブラウザで使えます。ホーム画面に追加すると、アプリのように起動できます（手順は下記「スマホでホーム画面に追加する」を参照）。
+
+## スマホでホーム画面に追加する
+
+### Android / Chrome
+
+1. 公開URLを Chrome で開く。
+2. メニューから「ホーム画面に追加」または「アプリをインストール」を選ぶ。
+3. ホーム画面の BioLog Mobile アイコンから起動する。
+
+### iPhone / Safari
+
+1. 公開URLを Safari で開く。
+2. 共有ボタンを押す。
+3. 「ホーム画面に追加」を選ぶ。
+4. ホーム画面の BioLog Mobile アイコンから起動する。
+
+## 開発者向け：PCブラウザでローカル確認する場合
 
 ```powershell
 cd path\to\biolog_mobile
@@ -100,7 +120,7 @@ python -m http.server 8787
 http://localhost:8787
 ```
 
-### GitHub Pages で公開する場合
+## GitHub Pages で公開する場合
 
 `biolog_mobile` の中身を GitHub Pages で配信します。
 このアプリは相対パス前提で作られているため、リポジトリ名付きURLでも動作します。
@@ -126,21 +146,6 @@ http://localhost:8787
 - `icons/icon-512.png`
 
 バックアップJSONや個人データを含むCSVは公開しないでください。
-
-## スマホでホーム画面に追加する
-
-### Android / Chrome
-
-1. 公開URLを Chrome で開く。
-2. メニューから「ホーム画面に追加」または「アプリをインストール」を選ぶ。
-3. ホーム画面の BioLog Mobile アイコンから起動する。
-
-### iPhone / Safari
-
-1. 公開URLを Safari で開く。
-2. 共有ボタンを押す。
-3. 「ホーム画面に追加」を選ぶ。
-4. ホーム画面の BioLog Mobile アイコンから起動する。
 
 ## バックアップ
 
