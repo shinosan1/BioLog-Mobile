@@ -300,11 +300,6 @@
     return !!(iosStandalone || displayStandalone);
   }
 
-  function currentOriginText() {
-    var origin = window.location && window.location.origin ? window.location.origin : "";
-    return origin && origin !== "null" ? origin : "不明";
-  }
-
   function storageStatusRow(label, value) {
     var row = createEl("div", "storage-status-row");
     row.appendChild(createEl("span", "storage-status-label", label));
@@ -323,7 +318,8 @@
       els.storageStatusList.textContent = "";
       els.storageStatusList.appendChild(storageStatusRow("起動状態", isStandalone ? "ホーム画面" : "ブラウザ"));
       els.storageStatusList.appendChild(storageStatusRow("保存件数", String(count) + "件"));
-      els.storageStatusList.appendChild(storageStatusRow("保存領域のサイト", currentOriginText()));
+      els.storageStatusList.appendChild(storageStatusRow("保存場所", "この端末のブラウザ内"));
+      els.storageStatusList.appendChild(storageStatusRow("健康記録の外部送信", "なし"));
       els.storageStatusList.appendChild(storageStatusRow("DB名", "biolog_mobile"));
 
       if (els.storageStatusWarning) {

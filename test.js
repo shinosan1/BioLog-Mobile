@@ -459,9 +459,12 @@
     ok("app does not use utc date slice", appText.indexOf("toISOString().slice(0, 10)") === -1);
     ok("date edit mismatch guard", appText.indexOf("対象日が変更されています") !== -1);
     ok(
-      "storage status identifies the site instead of a backup destination",
-      appText.indexOf('storageStatusRow("保存領域のサイト", currentOriginText())') !== -1 &&
-        appText.indexOf('storageStatusRow("保存先", currentOriginText())') === -1
+      "storage status states device-local storage without displaying the site origin",
+      appText.indexOf('storageStatusRow("保存場所", "この端末のブラウザ内")') !== -1 &&
+        appText.indexOf('storageStatusRow("健康記録の外部送信", "なし")') !== -1 &&
+        appText.indexOf("currentOriginText") === -1 &&
+        appText.indexOf('storageStatusRow("保存領域のサイト"') === -1 &&
+        appText.indexOf('storageStatusRow("保存先"') === -1
     );
     ok("app checks current consent", appText.indexOf("BioLogConsent.hasValidConsent") !== -1);
     ok("app saves consent before start", appText.indexOf("BioLogConsent.saveConsent") !== -1);
