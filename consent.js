@@ -3,8 +3,8 @@
 
   var STORAGE_KEY = "biolog_mobile_consent";
   var SCHEMA_VERSION = 1;
-  var TERMS_VERSION = "2026-07-14";
-  var PRIVACY_VERSION = "2026-07-14";
+  var TERMS_VERSION = "2026-07-14-2";
+  var PRIVACY_VERSION = "2026-07-14-2";
   var ISO_TIMESTAMP_PATTERN = /^\d{4}-\d{2}-\d{2}T\d{2}:\d{2}:\d{2}\.\d{3}Z$/;
 
   function defaultStorage() {

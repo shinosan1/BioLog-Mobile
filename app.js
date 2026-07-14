@@ -1287,7 +1287,7 @@
     updateConsentSubmitState();
     showMessage(
       els.consentMessage,
-      "同意しない場合、BioLog Mobileは開始されません。既に保存されている健康記録は、この操作では削除されません。利用しない場合はこの画面を閉じてください。",
+      "同意しない場合、BioLog Mobileは開始されません。既に保存されている健康記録は、この操作では削除されません。削除方法はプライバシーポリシーの「保存データの削除」をご確認ください。利用しない場合はこの画面を閉じてください。",
       "error"
     );
     els.consentTitle.focus();
