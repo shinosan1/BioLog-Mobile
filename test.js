@@ -445,6 +445,15 @@
     ok("terms link is local", indexDoc.querySelector("a[href='./terms.html']") !== null);
     ok("privacy link is local", indexDoc.querySelector("a[href='./privacy.html']") !== null);
     ok("index does not read saved theme", indexText.indexOf("biolog_mobile_theme") === -1);
+    var headerActions = indexDoc.querySelector(".header-actions");
+    var themeToggle = indexDoc.getElementById("theme-toggle");
+    var appUpdateButton = indexDoc.getElementById("app-update-button");
+    ok("app update button exists", !!appUpdateButton);
+    ok(
+      "app update button is below theme toggle",
+      !!headerActions && themeToggle.parentElement === headerActions &&
+        themeToggle.nextElementSibling === appUpdateButton
+    );
     ok(
       "consent script loads before app",
       indexText.indexOf("./consent.js") !== -1 &&
@@ -468,6 +477,10 @@
     );
     ok("app checks current consent", appText.indexOf("BioLogConsent.hasValidConsent") !== -1);
     ok("app saves consent before start", appText.indexOf("BioLogConsent.saveConsent") !== -1);
+    ok("app update button is bound", appText.indexOf('els.appUpdateButton.addEventListener("click", handleAppUpdate)') !== -1);
+    ok("app update warns about unsaved input", appText.indexOf("入力途中の内容は失われます") !== -1);
+    ok("app update bypasses service worker http cache", appText.indexOf('updateViaCache: "none"') !== -1);
+    ok("app update reload is guarded", appText.indexOf("function reloadApplicationOnce") !== -1);
     var startApplicationText = appText.slice(
       appText.indexOf("function startApplication"),
       appText.indexOf("function handleConsentSubmit")
@@ -491,6 +504,11 @@
     ok("service worker caches consent module", serviceWorkerText.indexOf('"./consent.js"') !== -1);
     ok("service worker caches privacy policy", serviceWorkerText.indexOf('"./privacy.html"') !== -1);
     ok("service worker caches terms", serviceWorkerText.indexOf('"./terms.html"') !== -1);
+    ok("service worker cache version updated", serviceWorkerText.indexOf("biolog-mobile-v2.13.2") !== -1);
+    ok("service worker install bypasses http cache", serviceWorkerText.indexOf('{ cache: "reload" }') !== -1);
+    ok("service worker online fetch bypasses http cache", serviceWorkerText.indexOf('{ cache: "no-store" }') !== -1);
+    ok("service worker waits for skip waiting", serviceWorkerText.indexOf("event.waitUntil(self.skipWaiting())") !== -1);
+    ok("service worker does not precache itself", serviceWorkerText.indexOf('"./service-worker.js"') === -1);
 
     await window.BioLogDB.deleteAllRecords();
     ok("delete all test db only", await countRecords() === 0);

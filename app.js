@@ -9,6 +9,8 @@
     dateEditRecord: null,
     dateEditLoaded: false,
     pullRefreshing: false,
+    appUpdating: false,
+    appReloading: false,
     appStarted: false
   };
 
@@ -357,14 +359,8 @@
       return;
     }
 
-    var reloading = false;
     navigator.serviceWorker.addEventListener("controllerchange", function () {
-      if (reloading) {
-        return;
-      }
-      reloading = true;
-      setStatus("新しい版を読み込んでいます...");
-      window.location.reload();
+      reloadApplicationOnce();
     });
   }
 
@@ -377,25 +373,48 @@
   }
 
   function waitForInstallingWorker(worker) {
-    return new Promise(function (resolve) {
-      var resolved = false;
+    return new Promise(function (resolve, reject) {
+      var settled = false;
       var timeout = window.setTimeout(function () {
-        if (!resolved) {
-          resolved = true;
-          resolve(false);
+        if (!settled) {
+          settled = true;
+          reject(new Error("Service Workerの更新がタイムアウトしました。"));
         }
-      }, 4000);
+      }, 10000);
 
-      worker.addEventListener("statechange", function () {
-        if (resolved) {
+      function finish(value) {
+        if (settled) {
           return;
         }
-        if (worker.state === "installed" || worker.state === "activated") {
-          resolved = true;
-          window.clearTimeout(timeout);
-          resolve(skipWaiting(worker));
+        settled = true;
+        window.clearTimeout(timeout);
+        resolve(value);
+      }
+
+      function fail(error) {
+        if (settled) {
+          return;
         }
+        settled = true;
+        window.clearTimeout(timeout);
+        reject(error);
+      }
+
+      function inspectState() {
+        if (worker.state === "installed") {
+          finish(skipWaiting(worker));
+        } else if (worker.state === "activating" || worker.state === "activated") {
+          finish(true);
+        } else if (worker.state === "redundant") {
+          fail(new Error("Service Workerの更新を適用できませんでした。"));
+        }
+      }
+
+      worker.addEventListener("statechange", function () {
+        inspectState();
       });
+
+      inspectState();
     });
   }
 
@@ -405,23 +424,105 @@
     }
 
     return navigator.serviceWorker.getRegistration("./").then(function (registration) {
+      var updateFoundWorker = null;
+
       if (!registration) {
         return false;
       }
 
+      if (registration.waiting) {
+        return skipWaiting(registration.waiting);
+      }
+      if (registration.installing) {
+        return waitForInstallingWorker(registration.installing);
+      }
+
+      function handleUpdateFound() {
+        updateFoundWorker = registration.installing;
+      }
+
+      registration.addEventListener("updatefound", handleUpdateFound);
+
       return registration.update().then(function () {
+        registration.removeEventListener("updatefound", handleUpdateFound);
         if (registration.waiting) {
           return skipWaiting(registration.waiting);
         }
         if (registration.installing) {
           return waitForInstallingWorker(registration.installing);
         }
+        if (updateFoundWorker) {
+          return waitForInstallingWorker(updateFoundWorker);
+        }
         return false;
+      }, function (error) {
+        registration.removeEventListener("updatefound", handleUpdateFound);
+        throw error;
       });
-    }).catch(function (error) {
-      console.warn("Service worker update check failed.", error);
-      return false;
     });
+  }
+
+  function setAppUpdateButtonBusy(isBusy) {
+    if (!els.appUpdateButton) {
+      return;
+    }
+
+    els.appUpdateButton.disabled = !!isBusy;
+    els.appUpdateButton.textContent = isBusy ? "更新中..." : "アプリを更新";
+    els.appUpdateButton.setAttribute("aria-busy", isBusy ? "true" : "false");
+  }
+
+  function reloadApplicationOnce() {
+    if (state.appReloading) {
+      return false;
+    }
+
+    state.appReloading = true;
+    setStatus("新しい版を読み込んでいます...");
+    window.location.reload();
+    return true;
+  }
+
+  function handleAppUpdate() {
+    if (state.appUpdating || state.appReloading) {
+      return;
+    }
+
+    if (!window.confirm("最新版を確認すると画面を再読み込みします。入力途中の内容は失われます。続けますか？")) {
+      return;
+    }
+
+    if (window.navigator && window.navigator.onLine === false) {
+      setStatus("アプリの更新にはインターネット接続が必要です。");
+      return;
+    }
+
+    state.appUpdating = true;
+    setAppUpdateButtonBusy(true);
+    setStatus("最新版を確認しています...");
+
+    checkForServiceWorkerUpdate().then(function (workerUpdateStarted) {
+      if (workerUpdateStarted) {
+        setStatus("新しい版を適用しています...");
+        window.setTimeout(reloadApplicationOnce, 10000);
+        return;
+      }
+
+      reloadApplicationOnce();
+    }).catch(function (error) {
+      console.warn("Application update failed.", error);
+      state.appUpdating = false;
+      setAppUpdateButtonBusy(false);
+      setStatus("更新に失敗しました。通信状態を確認して、もう一度お試しください。");
+    });
+  }
+
+  function bindAppUpdateControl() {
+    if (!els.appUpdateButton) {
+      return;
+    }
+
+    els.appUpdateButton.addEventListener("click", handleAppUpdate);
   }
 
   function setPullRefreshIndicator(message, progress, isActive) {
@@ -985,7 +1086,10 @@
       return Promise.resolve();
     }
 
-    return navigator.serviceWorker.register("./service-worker.js", { scope: "./" })
+    return navigator.serviceWorker.register("./service-worker.js", {
+      scope: "./",
+      updateViaCache: "none"
+    })
       .then(function () {
         setStatus("端末内に保存できます。オフライン起動の準備も完了しました。");
       })
@@ -1074,6 +1178,7 @@
     els.csvButton = document.getElementById("import-csv-button");
     els.deleteAllButton = document.getElementById("delete-all-button");
     els.themeToggle = document.getElementById("theme-toggle");
+    els.appUpdateButton = document.getElementById("app-update-button");
   }
 
   function showConsentGate() {
@@ -1133,6 +1238,7 @@
 
     applyTheme(initialTheme(), false);
     bindThemeControl();
+    bindAppUpdateControl();
     bindServiceWorkerReload();
     bindTabs();
     bindBackupControls();

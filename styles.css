@@ -248,6 +248,12 @@ html[data-theme="dark"] .consent-card {
   min-width: 0;
 }
 
+.header-actions {
+  flex: 0 0 auto;
+  display: grid;
+  gap: 6px;
+}
+
 .app-icon {
   flex: 0 0 auto;
   border-radius: 16px;
@@ -395,6 +401,17 @@ h3 {
   min-height: 40px;
   border-radius: 999px;
   padding: 0 12px;
+}
+
+.app-update-button {
+  min-height: 40px;
+  border-radius: 999px;
+  padding: 0 12px;
+  font-size: 0.82rem;
+}
+
+.app-update-button:disabled {
+  opacity: 0.6;
 }
 
 .tab-button.is-active,

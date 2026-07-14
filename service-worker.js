@@ -1,4 +1,4 @@
-const CACHE_NAME = "biolog-mobile-v2.13.1";
+const CACHE_NAME = "biolog-mobile-v2.13.2";
 const CACHE_URLS = [
   "./",
   "./index.html",
@@ -15,30 +15,32 @@ const CACHE_URLS = [
   "./csv.js",
   "./app.js",
   "./manifest.webmanifest",
-  "./service-worker.js",
   "./icons/icon-192.png",
   "./icons/icon-512.png"
 ];
 
 self.addEventListener("install", (event) => {
   event.waitUntil(
-    caches.open(CACHE_NAME).then((cache) => cache.addAll(CACHE_URLS))
+    caches.open(CACHE_NAME).then((cache) => cache.addAll(
+      CACHE_URLS.map((url) => new Request(
+        new URL(url, self.location.href).href,
+        { cache: "reload" }
+      ))
+    ))
   );
-  self.skipWaiting();
 });
 
 self.addEventListener("activate", (event) => {
   event.waitUntil(
     caches.keys().then((names) => Promise.all(
       names.filter((name) => name !== CACHE_NAME).map((name) => caches.delete(name))
-    ))
+    )).then(() => self.clients.claim())
   );
-  self.clients.claim();
 });
 
 self.addEventListener("message", (event) => {
   if (event.data && event.data.type === "SKIP_WAITING") {
-    self.skipWaiting();
+    event.waitUntil(self.skipWaiting());
   }
 });
 
@@ -50,7 +52,7 @@ self.addEventListener("fetch", (event) => {
   }
 
   event.respondWith(
-    fetch(event.request).catch(() => caches.match(event.request))
+    fetch(event.request, { cache: "no-store" }).catch(() => caches.match(event.request))
   );
 });
 
