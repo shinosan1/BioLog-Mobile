@@ -1312,7 +1312,7 @@
     return true;
   }
 
-  window.addEventListener("load", function () {
+  document.addEventListener("DOMContentLoaded", function () {
     cacheElements();
 
     if (!window.BioLogConsent || !bindConsentControls()) {

@@ -12,7 +12,11 @@
   <link rel="stylesheet" href="./styles.css">
 </head>
 <body>
-  <main id="consent-gate" class="consent-shell" aria-labelledby="consent-title" aria-describedby="consent-description">
+  <noscript>
+    <p class="message message-error">BioLog Mobileを利用するにはJavaScriptを有効にしてください。</p>
+  </noscript>
+
+  <main id="consent-gate" class="consent-shell" hidden aria-labelledby="consent-title" aria-describedby="consent-description">
     <section class="consent-card">
       <div class="consent-heading">
         <img class="app-icon" src="./icons/icon-192.png" alt="" width="56" height="56">
@@ -47,10 +51,6 @@
           <button type="button" id="consent-decline-button" class="secondary-button">同意しない</button>
         </div>
       </form>
-
-      <noscript>
-        <p class="message message-error">BioLog Mobileを利用するにはJavaScriptを有効にしてください。</p>
-      </noscript>
     </section>
   </main>
 
