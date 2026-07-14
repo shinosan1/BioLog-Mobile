@@ -8,7 +8,8 @@
     dateEditDate: "",
     dateEditRecord: null,
     dateEditLoaded: false,
-    pullRefreshing: false
+    pullRefreshing: false,
+    appStarted: false
   };
 
   var els = {};
@@ -70,7 +71,7 @@
   }
 
   function initialTheme() {
-    return normalizeTheme(document.documentElement.dataset.theme) || readStoredTheme() || preferredTheme();
+    return readStoredTheme() || normalizeTheme(document.documentElement.dataset.theme) || preferredTheme();
   }
 
   function updateThemeMeta(theme) {
@@ -1044,6 +1045,15 @@
   }
 
   function cacheElements() {
+    els.consentGate = document.getElementById("consent-gate");
+    els.consentTitle = document.getElementById("consent-title");
+    els.consentForm = document.getElementById("consent-form");
+    els.consentTermsCheckbox = document.getElementById("consent-terms-checkbox");
+    els.consentPrivacyCheckbox = document.getElementById("consent-privacy-checkbox");
+    els.consentAgreeButton = document.getElementById("consent-agree-button");
+    els.consentDeclineButton = document.getElementById("consent-decline-button");
+    els.consentMessage = document.getElementById("consent-message");
+    els.appShell = document.getElementById("app-shell");
     els.status = document.getElementById("sw-status");
     els.topTodaySummary = document.getElementById("top-today-summary");
     els.todayDateLabel = document.getElementById("today-date-label");
@@ -1070,8 +1080,55 @@
     els.themeToggle = document.getElementById("theme-toggle");
   }
 
-  window.addEventListener("load", function () {
-    cacheElements();
+  function showConsentGate() {
+    if (els.appShell) {
+      els.appShell.hidden = true;
+      els.appShell.inert = true;
+    }
+    if (els.consentGate) {
+      els.consentGate.hidden = false;
+      els.consentGate.inert = false;
+    }
+
+    applyTheme(preferredTheme(), false);
+
+    if (els.consentTitle) {
+      window.requestAnimationFrame(function () {
+        els.consentTitle.focus();
+      });
+    }
+  }
+
+  function showApplication() {
+    if (els.consentGate) {
+      els.consentGate.hidden = true;
+      els.consentGate.inert = true;
+    }
+    if (els.appShell) {
+      els.appShell.hidden = false;
+      els.appShell.inert = false;
+    }
+  }
+
+  function updateConsentSubmitState() {
+    if (!els.consentAgreeButton) {
+      return;
+    }
+
+    els.consentAgreeButton.disabled = !(
+      els.consentTermsCheckbox &&
+      els.consentTermsCheckbox.checked &&
+      els.consentPrivacyCheckbox &&
+      els.consentPrivacyCheckbox.checked
+    );
+  }
+
+  function startApplication() {
+    if (state.appStarted) {
+      return;
+    }
+    state.appStarted = true;
+    showApplication();
 
     if (!window.BioLogDB || !window.BioLogForm || !window.BioLogBackup || !window.BioLogCharts || !window.BioLogCsv) {
       setStatus("必要な機能を読み込めませんでした。");
@@ -1098,5 +1155,74 @@
       .catch(function () {
         setStatus("保存機能の起動に失敗しました。");
       });
+  }
+
+  function handleConsentSubmit(event) {
+    event.preventDefault();
+
+    if (!els.consentTermsCheckbox.checked || !els.consentPrivacyCheckbox.checked) {
+      showMessage(els.consentMessage, "利用規約とプライバシーポリシーの両方への同意が必要です。", "error");
+      updateConsentSubmitState();
+      return;
+    }
+
+    if (!window.BioLogConsent.saveConsent()) {
+      showMessage(
+        els.consentMessage,
+        "同意状態を端末内に保存できませんでした。ブラウザのサイトデータ保存設定を確認して、もう一度お試しください。",
+        "error"
+      );
+      return;
+    }
+
+    clearMessage(els.consentMessage);
+    startApplication();
+  }
+
+  function handleConsentDecline() {
+    els.consentTermsCheckbox.checked = false;
+    els.consentPrivacyCheckbox.checked = false;
+    updateConsentSubmitState();
+    showMessage(
+      els.consentMessage,
+      "同意しない場合、BioLog Mobileは開始されません。既に保存されている健康記録は、この操作では削除されません。利用しない場合はこの画面を閉じてください。",
+      "error"
+    );
+    els.consentTitle.focus();
+  }
+
+  function bindConsentControls() {
+    if (
+      !els.consentForm ||
+      !els.consentTermsCheckbox ||
+      !els.consentPrivacyCheckbox ||
+      !els.consentAgreeButton ||
+      !els.consentDeclineButton
+    ) {
+      return false;
+    }
+
+    els.consentTermsCheckbox.addEventListener("change", updateConsentSubmitState);
+    els.consentPrivacyCheckbox.addEventListener("change", updateConsentSubmitState);
+    els.consentForm.addEventListener("submit", handleConsentSubmit);
+    els.consentDeclineButton.addEventListener("click", handleConsentDecline);
+    updateConsentSubmitState();
+    return true;
+  }
+
+  window.addEventListener("load", function () {
+    cacheElements();
+
+    if (!window.BioLogConsent || !bindConsentControls()) {
+      showConsentGate();
+      showMessage(els.consentMessage, "同意確認機能を読み込めませんでした。ページを再読み込みしてください。", "error");
+      return;
+    }
+
+    if (window.BioLogConsent.hasValidConsent()) {
+      startApplication();
+    } else {
+      showConsentGate();
+    }
   });
 }());

@@ -33,6 +33,22 @@
     });
   }
 
+  function createMemoryStorage() {
+    var values = {};
+
+    return {
+      getItem: function (key) {
+        return Object.prototype.hasOwnProperty.call(values, key) ? values[key] : null;
+      },
+      setItem: function (key, value) {
+        values[key] = String(value);
+      },
+      removeItem: function (key) {
+        delete values[key];
+      }
+    };
+  }
+
   function expectedLocalMinute(value) {
     var date = new Date(value);
     return [
@@ -49,6 +65,63 @@
   }
 
   try {
+    ok("consent api loaded", !!window.BioLogConsent);
+    var consentVersions = window.BioLogConsent.getVersions();
+    ok("consent schema version", consentVersions.schemaVersion === 1);
+    ok("terms version", consentVersions.termsVersion === "2026-07-14");
+    ok("privacy version", consentVersions.privacyVersion === "2026-07-14");
+
+    var consentStorage = createMemoryStorage();
+    ok("missing consent rejected", !window.BioLogConsent.hasValidConsent(consentStorage));
+    ok(
+      "current consent saved",
+      window.BioLogConsent.saveConsent(consentStorage, "2026-07-14T00:00:00.000Z")
+    );
+    ok("saved consent accepted", window.BioLogConsent.hasValidConsent(consentStorage));
+    ok(
+      "accepted timestamp retained",
+      window.BioLogConsent.getCurrentConsent(consentStorage).acceptedAt === "2026-07-14T00:00:00.000Z"
+    );
+
+    consentStorage.setItem(window.BioLogConsent.STORAGE_KEY, "{");
+    ok("broken consent json rejected", !window.BioLogConsent.hasValidConsent(consentStorage));
+    consentStorage.setItem(window.BioLogConsent.STORAGE_KEY, JSON.stringify({
+      schemaVersion: 1,
+      termsVersion: "old",
+      privacyVersion: "2026-07-14",
+      acceptedAt: "2026-07-14T00:00:00.000Z"
+    }));
+    ok("old terms consent rejected", !window.BioLogConsent.hasValidConsent(consentStorage));
+    consentStorage.setItem(window.BioLogConsent.STORAGE_KEY, JSON.stringify({
+      schemaVersion: 1,
+      termsVersion: "2026-07-14",
+      privacyVersion: "old",
+      acceptedAt: "2026-07-14T00:00:00.000Z"
+    }));
+    ok("old privacy consent rejected", !window.BioLogConsent.hasValidConsent(consentStorage));
+    consentStorage.setItem(window.BioLogConsent.STORAGE_KEY, JSON.stringify({
+      schemaVersion: 1,
+      termsVersion: "2026-07-14",
+      privacyVersion: "2026-07-14",
+      acceptedAt: "not-a-date"
+    }));
+    ok("invalid consent timestamp rejected", !window.BioLogConsent.hasValidConsent(consentStorage));
+    ok("invalid save timestamp rejected", !window.BioLogConsent.saveConsent(consentStorage, "not-a-date"));
+    ok("explicit null storage rejected", !window.BioLogConsent.hasValidConsent(null));
+    ok("write failure rejected", !window.BioLogConsent.saveConsent({
+      getItem: function () { return null; },
+      setItem: function () { throw new Error("blocked"); }
+    }));
+    ok("read failure rejected", !window.BioLogConsent.hasValidConsent({
+      getItem: function () { throw new Error("blocked"); }
+    }));
+    ok(
+      "consent can be cleared",
+      window.BioLogConsent.saveConsent(consentStorage, "2026-07-14T00:00:00.000Z") &&
+      window.BioLogConsent.clearConsent(consentStorage) &&
+      !window.BioLogConsent.hasValidConsent(consentStorage)
+    );
+
     ok("test db name set before db.js", window.BIOLOG_DB_NAME === "biolog_mobile_test");
     await window.BioLogDB.deleteAllRecords();
     ok("test db starts empty", await countRecords() === 0);
@@ -363,6 +436,20 @@
     ok("status message separate", !!indexDoc.getElementById("sw-status"));
     ok("date edit tab exists", !!indexDoc.querySelector("[data-view-target='date-edit']"));
     ok("date edit view exists", !!indexDoc.querySelector("[data-view='date-edit']"));
+    ok("consent gate exists", !!indexDoc.getElementById("consent-gate"));
+    ok("terms consent checkbox exists", !!indexDoc.getElementById("consent-terms-checkbox"));
+    ok("privacy consent checkbox exists", !!indexDoc.getElementById("consent-privacy-checkbox"));
+    ok("consent button starts disabled", indexDoc.getElementById("consent-agree-button").disabled);
+    ok("app starts hidden", indexDoc.getElementById("app-shell").hidden);
+    ok("app starts inert", indexDoc.getElementById("app-shell").hasAttribute("inert"));
+    ok("terms link is local", indexDoc.querySelector("a[href='./terms.html']") !== null);
+    ok("privacy link is local", indexDoc.querySelector("a[href='./privacy.html']") !== null);
+    ok("index does not read saved theme", indexText.indexOf("biolog_mobile_theme") === -1);
+    ok(
+      "consent script loads before app",
+      indexText.indexOf("./consent.js") !== -1 &&
+      indexText.indexOf("./consent.js") < indexText.indexOf("./app.js")
+    );
     ok("static ids unique", ids.length === Array.from(new Set(ids)).length);
 
     var appText = await fetch("./app.js").then(function (response) {
@@ -371,6 +458,31 @@
     ok("app uses local today date", appText.indexOf("localDateYYYYMMDD") !== -1);
     ok("app does not use utc date slice", appText.indexOf("toISOString().slice(0, 10)") === -1);
     ok("date edit mismatch guard", appText.indexOf("対象日が変更されています") !== -1);
+    ok("app checks current consent", appText.indexOf("BioLogConsent.hasValidConsent") !== -1);
+    ok("app saves consent before start", appText.indexOf("BioLogConsent.saveConsent") !== -1);
+    var startApplicationText = appText.slice(
+      appText.indexOf("function startApplication"),
+      appText.indexOf("function handleConsentSubmit")
+    );
+    ok("database startup stays inside consent-gated start", startApplicationText.indexOf("BioLogDB.openDB") !== -1);
+    ok("service worker registration stays inside consent-gated start", startApplicationText.indexOf("registerServiceWorker") !== -1);
+
+    var privacyText = await fetch("./privacy.html").then(function (response) {
+      return response.text();
+    });
+    var termsText = await fetch("./terms.html").then(function (response) {
+      return response.text();
+    });
+    ok("privacy policy version", privacyText.indexOf("2026-07-14") !== -1);
+    ok("terms document version", termsText.indexOf("2026-07-14") !== -1);
+    ok("privacy documents local consent", privacyText.indexOf("localStorage") !== -1);
+
+    var serviceWorkerText = await fetch("./service-worker.js").then(function (response) {
+      return response.text();
+    });
+    ok("service worker caches consent module", serviceWorkerText.indexOf('"./consent.js"') !== -1);
+    ok("service worker caches privacy policy", serviceWorkerText.indexOf('"./privacy.html"') !== -1);
+    ok("service worker caches terms", serviceWorkerText.indexOf('"./terms.html"') !== -1);
 
     await window.BioLogDB.deleteAllRecords();
     ok("delete all test db only", await countRecords() === 0);

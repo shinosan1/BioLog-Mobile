@@ -46,6 +46,32 @@ html[data-theme="dark"] {
   --readme-glow: rgba(109, 207, 121, 0.10);
 }
 
+@media (prefers-color-scheme: dark) {
+  html:not([data-theme]) {
+    color-scheme: dark;
+    --green: #6dcf79;
+    --green-dark: #4ab45a;
+    --red: #ffb4ab;
+    --ink: #edf4ee;
+    --muted: #a8b5aa;
+    --surface: #172019;
+    --line: #344338;
+    --bg: #0e1511;
+    --danger: #ffb4ab;
+    --on-accent: #061009;
+    --input-bg: #101811;
+    --focus-ring: rgba(109, 207, 121, 0.28);
+    --danger-line: #7f332d;
+    --success-line: #416d48;
+    --success-bg: #132318;
+    --success-text: #bcefc4;
+    --error-line: #7f332d;
+    --error-bg: #281513;
+    --chip-bg: #101811;
+    --readme-glow: rgba(109, 207, 121, 0.10);
+  }
+}
+
 * {
   box-sizing: border-box;
 }
@@ -81,6 +107,109 @@ button {
   display: grid;
   align-content: start;
   gap: 18px;
+}
+
+.consent-shell {
+  width: min(100%, 620px);
+  min-height: 100svh;
+  margin: 0 auto;
+  padding: calc(24px + env(safe-area-inset-top)) 16px calc(24px + env(safe-area-inset-bottom));
+  display: grid;
+  align-items: center;
+}
+
+.consent-card {
+  border: 1px solid var(--line);
+  border-radius: 8px;
+  background: var(--surface);
+  box-shadow: 0 16px 42px rgba(16, 42, 22, 0.12);
+  padding: 22px;
+  display: grid;
+  gap: 18px;
+}
+
+html[data-theme="dark"] .consent-card {
+  box-shadow: 0 16px 42px rgba(0, 0, 0, 0.28);
+}
+
+.consent-heading {
+  display: flex;
+  align-items: center;
+  gap: 14px;
+}
+
+.consent-heading > div,
+.consent-checkbox span {
+  min-width: 0;
+}
+
+.consent-card > p,
+.consent-checkbox {
+  line-height: 1.65;
+}
+
+.consent-storage-note {
+  border: 1px solid var(--line);
+  border-radius: 8px;
+  background: var(--chip-bg);
+  color: var(--muted);
+  padding: 12px;
+}
+
+.consent-document-links,
+.consent-form {
+  display: grid;
+  gap: 12px;
+}
+
+.consent-document-links a {
+  color: var(--green);
+  font-weight: 700;
+  overflow-wrap: anywhere;
+  text-decoration-thickness: 1px;
+  text-underline-offset: 3px;
+}
+
+.consent-document-links a:focus-visible {
+  border-radius: 4px;
+  outline: 3px solid var(--focus-ring);
+  outline-offset: 3px;
+}
+
+.consent-checkbox {
+  border: 1px solid var(--line);
+  border-radius: 8px;
+  background: var(--surface);
+  padding: 12px;
+  display: flex;
+  align-items: flex-start;
+  gap: 10px;
+  color: var(--ink);
+  font-weight: 650;
+}
+
+.consent-checkbox input[type="checkbox"] {
+  flex: 0 0 auto;
+  width: 1.25rem;
+  height: 1.25rem;
+  margin: 0.15rem 0 0;
+  padding: 0;
+  accent-color: var(--green);
+}
+
+.consent-actions {
+  display: flex;
+  gap: 10px;
+  flex-wrap: wrap;
+}
+
+.consent-actions button {
+  flex: 1 1 180px;
+  padding: 10px 14px;
+}
+
+.consent-actions button:disabled {
+  opacity: 0.5;
 }
 
 .pull-refresh-indicator {
