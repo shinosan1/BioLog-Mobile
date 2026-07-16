@@ -68,8 +68,8 @@
     ok("consent api loaded", !!window.BioLogConsent);
     var consentVersions = window.BioLogConsent.getVersions();
     ok("consent schema version", consentVersions.schemaVersion === 1);
-    ok("terms version", consentVersions.termsVersion === "2026-07-14");
-    ok("privacy version", consentVersions.privacyVersion === "2026-07-14");
+    ok("terms version", consentVersions.termsVersion === "2026-07-14-3");
+    ok("privacy version", consentVersions.privacyVersion === "2026-07-14-2");
 
     var consentStorage = createMemoryStorage();
     ok("missing consent rejected", !window.BioLogConsent.hasValidConsent(consentStorage));
@@ -78,6 +78,12 @@
       window.BioLogConsent.saveConsent(consentStorage, "2026-07-14T00:00:00.000Z")
     );
     ok("saved consent accepted", window.BioLogConsent.hasValidConsent(consentStorage));
+    var savedConsent = window.BioLogConsent.getCurrentConsent(consentStorage);
+    ok(
+      "saved consent uses current document versions",
+      savedConsent.termsVersion === consentVersions.termsVersion &&
+      savedConsent.privacyVersion === consentVersions.privacyVersion
+    );
     ok(
       "accepted timestamp retained",
       window.BioLogConsent.getCurrentConsent(consentStorage).acceptedAt === "2026-07-14T00:00:00.000Z"
@@ -88,24 +94,31 @@
     consentStorage.setItem(window.BioLogConsent.STORAGE_KEY, JSON.stringify({
       schemaVersion: 1,
       termsVersion: "old",
-      privacyVersion: "2026-07-14",
+      privacyVersion: "2026-07-14-2",
       acceptedAt: "2026-07-14T00:00:00.000Z"
     }));
     ok("old terms consent rejected", !window.BioLogConsent.hasValidConsent(consentStorage));
     consentStorage.setItem(window.BioLogConsent.STORAGE_KEY, JSON.stringify({
       schemaVersion: 1,
-      termsVersion: "2026-07-14",
+      termsVersion: "2026-07-14-3",
       privacyVersion: "old",
       acceptedAt: "2026-07-14T00:00:00.000Z"
     }));
     ok("old privacy consent rejected", !window.BioLogConsent.hasValidConsent(consentStorage));
     consentStorage.setItem(window.BioLogConsent.STORAGE_KEY, JSON.stringify({
       schemaVersion: 1,
-      termsVersion: "2026-07-14",
-      privacyVersion: "2026-07-14",
+      termsVersion: "2026-07-14-3",
+      privacyVersion: "2026-07-14-2",
       acceptedAt: "not-a-date"
     }));
     ok("invalid consent timestamp rejected", !window.BioLogConsent.hasValidConsent(consentStorage));
+    consentStorage.setItem(window.BioLogConsent.STORAGE_KEY, JSON.stringify({
+      schemaVersion: 1,
+      termsVersion: "2026-07-14",
+      privacyVersion: "2026-07-14",
+      acceptedAt: "2026-07-14T00:00:00.000Z"
+    }));
+    ok("stale cached document consent rejected", !window.BioLogConsent.hasValidConsent(consentStorage));
     ok("invalid save timestamp rejected", !window.BioLogConsent.saveConsent(consentStorage, "not-a-date"));
     ok("explicit null storage rejected", !window.BioLogConsent.hasValidConsent(null));
     ok("write failure rejected", !window.BioLogConsent.saveConsent({
@@ -504,7 +517,7 @@
     ok("service worker caches consent module", serviceWorkerText.indexOf('"./consent.js"') !== -1);
     ok("service worker caches privacy policy", serviceWorkerText.indexOf('"./privacy.html"') !== -1);
     ok("service worker caches terms", serviceWorkerText.indexOf('"./terms.html"') !== -1);
-    ok("service worker cache version updated", serviceWorkerText.indexOf("biolog-mobile-v2.13.2") !== -1);
+    ok("service worker cache version updated", serviceWorkerText.indexOf("biolog-mobile-v2.13.3") !== -1);
     ok("service worker install bypasses http cache", serviceWorkerText.indexOf('{ cache: "reload" }') !== -1);
     ok("service worker online fetch bypasses http cache", serviceWorkerText.indexOf('{ cache: "no-store" }') !== -1);
     ok("service worker waits for skip waiting", serviceWorkerText.indexOf("event.waitUntil(self.skipWaiting())") !== -1);
