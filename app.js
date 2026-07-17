@@ -165,6 +165,16 @@
     dateInput.name = "date";
     form.appendChild(dateInput);
 
+    if (mode === "today") {
+      var topActions = createEl("div", "form-actions form-actions-top");
+      var topSubmit = document.createElement("button");
+      topSubmit.type = "submit";
+      topSubmit.className = "primary-button";
+      topSubmit.textContent = submitLabel;
+      topActions.appendChild(topSubmit);
+      form.appendChild(topActions);
+    }
+
     var grid = createEl("div", "field-grid");
     window.BioLogForm.MEASUREMENT_FIELDS.forEach(function (field) {
       var wrapper = createEl("label", "field");
@@ -685,6 +695,19 @@
       return;
     }
 
+    var hasSummaryValue = TOP_SUMMARY_ITEMS.some(function (item) {
+      if (item.field === "blood_pressure") {
+        return hasValue(record, "systolic_bp") || hasValue(record, "diastolic_bp");
+      }
+      return hasValue(record, item.field);
+    });
+
+    if (!hasSummaryValue) {
+      els.topTodaySummary.replaceChildren();
+      els.topTodaySummary.hidden = true;
+      return;
+    }
+
     var fragment = document.createDocumentFragment();
     var header = createEl("div", "top-summary-header");
     header.appendChild(createEl("h2", "", "今日の主要指標"));
@@ -701,16 +724,23 @@
     });
     fragment.appendChild(grid);
 
+    els.topTodaySummary.hidden = false;
     els.topTodaySummary.replaceChildren(fragment);
   }
 
   function renderTopTodaySummary() {
     var todayDate = state.todayDate || window.BioLogDB.localDateYYYYMMDD();
 
+    if (els.topTodaySummary) {
+      els.topTodaySummary.hidden = false;
+      els.topTodaySummary.replaceChildren();
+    }
+
     return window.BioLogDB.getRecordByDate(todayDate).then(function (record) {
       renderTopTodaySummaryCard(record || null, todayDate);
     }).catch(function () {
       if (els.topTodaySummary) {
+        els.topTodaySummary.hidden = false;
         els.topTodaySummary.replaceChildren(createEl("p", "placeholder-text", "今日の主要指標を読み込めませんでした。"));
       }
     });

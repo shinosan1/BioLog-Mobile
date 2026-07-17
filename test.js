@@ -495,6 +495,10 @@
     ok("app update warns about unsaved input", appText.indexOf("入力途中の内容は失われます") !== -1);
     ok("app update bypasses service worker http cache", appText.indexOf('updateViaCache: "none"') !== -1);
     ok("app update reload is guarded", appText.indexOf("function reloadApplicationOnce") !== -1);
+    ok("today form has an upper submit action", appText.indexOf('mode === "today"') !== -1 && appText.indexOf("form-actions form-actions-top") !== -1);
+    ok("empty top summary is hidden", appText.indexOf("if (!hasSummaryValue)") !== -1 && appText.indexOf("els.topTodaySummary.hidden = true") !== -1);
+    ok("top summary uses explicit value checks", appText.indexOf('hasValue(record, "systolic_bp") || hasValue(record, "diastolic_bp")') !== -1);
+    ok("top summary error remains visible", appText.indexOf('els.topTodaySummary.hidden = false') !== -1 && appText.indexOf("今日の主要指標を読み込めませんでした") !== -1);
     var startApplicationText = appText.slice(
       appText.indexOf("function startApplication"),
       appText.indexOf("function handleConsentSubmit")
@@ -525,7 +529,7 @@
     ok("service worker caches consent module", serviceWorkerText.indexOf('"./consent.js"') !== -1);
     ok("service worker caches privacy policy", serviceWorkerText.indexOf('"./privacy.html"') !== -1);
     ok("service worker caches terms", serviceWorkerText.indexOf('"./terms.html"') !== -1);
-    ok("service worker cache version updated", serviceWorkerText.indexOf("biolog-mobile-v2.13.4") !== -1);
+    ok("service worker cache version updated", serviceWorkerText.indexOf("biolog-mobile-v2.13.5") !== -1);
     ok("service worker install bypasses http cache", serviceWorkerText.indexOf('{ cache: "reload" }') !== -1);
     ok("service worker online fetch bypasses http cache", serviceWorkerText.indexOf('{ cache: "no-store" }') !== -1);
     ok("service worker waits for skip waiting", serviceWorkerText.indexOf("event.waitUntil(self.skipWaiting())") !== -1);
