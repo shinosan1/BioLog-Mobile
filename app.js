@@ -328,7 +328,7 @@
         if (isStandalone && count === 0) {
           showMessage(
             els.storageStatusWarning,
-            "ホーム画面版で見えている記録が0件です。Safari側に記録が残っている場合は、SafariでJSONを書き出し、このホーム画面版でJSONを読み込んでください。ホーム画面アイコンを削除・再追加する前にも、必ずJSONバックアップを作成してください。",
+            "ホーム画面版で見えている記録が0件です。Safari側に記録が残っている場合は、Safariでバックアップファイルを保存し、このホーム画面版でバックアップファイルから復元してください。ホーム画面アイコンを削除・再追加する前にも、必ずバックアップファイルを作成してください。",
             "error"
           );
         } else {
@@ -347,7 +347,7 @@
   function showStartupStorageHint() {
     return window.BioLogDB.getAllRecords().then(function (records) {
       if (isStandaloneLaunch() && records.length === 0) {
-        setStatus("ホーム画面版で見える記録が0件です。Safari側に記録がある場合はJSONバックアップで移してください。");
+        setStatus("ホーム画面版で見える記録が0件です。Safari側に記録がある場合は、バックアップファイルを使って移してください。");
       }
     }).catch(function () {
       return;
@@ -994,10 +994,10 @@
       var payload = window.BioLogBackup.buildExportPayload(records);
       var fileName = window.BioLogBackup.makeExportFileName();
       window.BioLogBackup.downloadJson(payload, fileName);
-      showMessage(els.backupMessage, fileName + " を書き出しました。", "success");
+      showMessage(els.backupMessage, "バックアップファイルを作成しました。表示された画面から端末に保存してください。ファイル名: " + fileName, "success");
       return renderStorageStatus();
     }).catch(function () {
-      showMessage(els.backupMessage, "JSONの書き出しに失敗しました。", "error");
+      showMessage(els.backupMessage, "バックアップファイルを作成できませんでした。", "error");
     });
   }
 
@@ -1013,7 +1013,7 @@
     clearMessage(els.backupMessage);
 
     if (!els.importFile.files.length) {
-      showMessage(els.backupMessage, "JSONファイルを選択してください。", "error");
+      showMessage(els.backupMessage, "バックアップファイルを選択してください。", "error");
       return;
     }
 
@@ -1028,12 +1028,12 @@
 
       return window.BioLogBackup.importRecords(validation.records);
     }).then(function (result) {
-      showMessage(els.backupMessage, result.imported + "件を読み込みました。追加: " + result.added + " / 更新: " + result.updated, "success");
+      showMessage(els.backupMessage, result.imported + "件を復元しました。追加: " + result.added + " / 更新: " + result.updated, "success");
       els.importFile.value = "";
       els.importButton.disabled = true;
       return Promise.all([loadTodayRecord(), renderHistory(), refreshGraphsIfVisible(), renderStorageStatus()]);
     }).catch(function (error) {
-      showMessage(els.backupMessage, error.message || "JSONの読み込みに失敗しました。", "error");
+      showMessage(els.backupMessage, error.message || "バックアップファイルから復元できませんでした。", "error");
     });
   }
 
@@ -1048,12 +1048,12 @@
     els.csvFile.files[0].text().then(function (text) {
       return window.BioLogCsv.importCsvText(text);
     }).then(function (result) {
-      showMessage(els.backupMessage, result.imported + "件のCSVを読み込みました。追加: " + result.added + " / 更新: " + result.updated, "success");
+      showMessage(els.backupMessage, "CSVファイルから" + result.imported + "件を取り込みました。追加: " + result.added + " / 更新: " + result.updated, "success");
       els.csvFile.value = "";
       els.csvButton.disabled = true;
       return Promise.all([loadTodayRecord(), renderHistory(), refreshGraphsIfVisible(), renderStorageStatus()]);
     }).catch(function (error) {
-      showMessage(els.backupMessage, error.message || "CSVの読み込みに失敗しました。", "error");
+      showMessage(els.backupMessage, error.message || "CSVファイルから記録を取り込めませんでした。", "error");
     });
   }
 

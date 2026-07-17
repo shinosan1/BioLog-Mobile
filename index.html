@@ -161,17 +161,18 @@
       </section>
       <div id="backup-message" class="message" hidden></div>
       <div class="backup-actions">
-        <button type="button" id="export-json-button" class="primary-button">JSONを書き出す</button>
+        <button type="button" id="export-json-button" class="primary-button">バックアップファイルを保存</button>
         <label class="file-field">
-          <span class="field-label">JSONファイル</span>
+          <span class="field-label">バックアップファイル</span>
           <input type="file" id="import-json-file" accept="application/json,.json">
         </label>
-        <button type="button" id="import-json-button" class="secondary-button" disabled>JSONを読み込む</button>
+        <button type="button" id="import-json-button" class="secondary-button" disabled>バックアップファイルから復元</button>
         <label class="file-field">
           <span class="field-label">CSVファイル</span>
           <input type="file" id="import-csv-file" accept=".csv,text/csv">
         </label>
-        <button type="button" id="import-csv-button" class="secondary-button" disabled>CSVを読み込む</button>
+        <button type="button" id="import-csv-button" class="secondary-button" disabled>CSVファイルから記録を取り込む</button>
+        <p class="muted-text">CSVは外部データの取り込み用です。完全な復元にはバックアップファイルを使用してください。</p>
         <button type="button" id="delete-all-button" class="danger-button">健康記録をすべて削除</button>
       </div>
       <footer class="view-notice">
@@ -191,5 +192,4 @@
   <script src="./app.js" defer></script>
 </body>
 </html>
-
 

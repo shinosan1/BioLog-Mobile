@@ -102,7 +102,7 @@
     try {
       return JSON.parse(text);
     } catch (error) {
-      throw new Error("JSONを読み込めませんでした。");
+      throw new Error("バックアップファイルを読み取れませんでした。");
     }
   }
 

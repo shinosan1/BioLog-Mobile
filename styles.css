@@ -607,14 +607,14 @@ button:focus-visible {
 .chart-card,
 .chart-body {
   display: grid;
-  gap: 12px;
+  gap: 8px;
 }
 
 .chart-card {
   border: 1px solid var(--line);
   border-radius: 8px;
   background: var(--surface);
-  padding: 14px;
+  padding: 12px;
 }
 
 .chart-card-header {

@@ -3,11 +3,11 @@
 
   var SVG_NS = "http://www.w3.org/2000/svg";
   var WIDTH = 320;
-  var HEIGHT = 180;
+  var HEIGHT = 140;
   var PADDING = {
-    top: 18,
+    top: 16,
     right: 18,
-    bottom: 34,
+    bottom: 30,
     left: 42
   };
 
@@ -157,7 +157,7 @@
   }
 
   function traceTooltipY(y, height) {
-    if (y < PADDING.top + height + 10) {
+    if (y < PADDING.top + height + 8) {
       return Math.min(y + 14, HEIGHT - PADDING.bottom - height - 4);
     }
     return Math.max(PADDING.top + 4, y - height - 10);

@@ -256,6 +256,7 @@
       ] }]
     });
     ok("flat chart svg", !!flatChart.querySelector("svg"));
+    ok("compact chart viewbox", flatChart.querySelector("svg").getAttribute("viewBox") === "0 0 320 140");
     ok("chart point hit target", !!flatChart.querySelector(".chart-point-hit"));
     ok("chart point tabindex", flatChart.querySelector(".chart-point-group").getAttribute("tabindex") === "0");
     ok("chart point aria label", flatChart.querySelector(".chart-point-group").getAttribute("aria-label").indexOf("2026-06-26 flat 10") !== -1);
@@ -507,9 +508,16 @@
     var termsText = await fetch("./terms.html").then(function (response) {
       return response.text();
     });
-    ok("privacy policy version", privacyText.indexOf("2026-07-14") !== -1);
-    ok("terms document version", termsText.indexOf("2026-07-14") !== -1);
+    ok("privacy policy version", privacyText.indexOf("文書バージョン: 2026-07-14-2") !== -1);
+    ok("terms document version", termsText.indexOf("文書バージョン: 2026-07-14-3") !== -1);
     ok("privacy documents local consent", privacyText.indexOf("localStorage") !== -1);
+
+    var indexText = await fetch("./index.html").then(function (response) {
+      return response.text();
+    });
+    ok("backup save label", indexText.indexOf("バックアップファイルを保存") !== -1);
+    ok("backup restore label", indexText.indexOf("バックアップファイルから復元") !== -1);
+    ok("csv import label", indexText.indexOf("CSVファイルから記録を取り込む") !== -1);
 
     var serviceWorkerText = await fetch("./service-worker.js").then(function (response) {
       return response.text();
@@ -517,7 +525,7 @@
     ok("service worker caches consent module", serviceWorkerText.indexOf('"./consent.js"') !== -1);
     ok("service worker caches privacy policy", serviceWorkerText.indexOf('"./privacy.html"') !== -1);
     ok("service worker caches terms", serviceWorkerText.indexOf('"./terms.html"') !== -1);
-    ok("service worker cache version updated", serviceWorkerText.indexOf("biolog-mobile-v2.13.3") !== -1);
+    ok("service worker cache version updated", serviceWorkerText.indexOf("biolog-mobile-v2.13.4") !== -1);
     ok("service worker install bypasses http cache", serviceWorkerText.indexOf('{ cache: "reload" }') !== -1);
     ok("service worker online fetch bypasses http cache", serviceWorkerText.indexOf('{ cache: "no-store" }') !== -1);
     ok("service worker waits for skip waiting", serviceWorkerText.indexOf("event.waitUntil(self.skipWaiting())") !== -1);
