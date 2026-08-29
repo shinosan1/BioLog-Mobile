@@ -54,6 +54,21 @@
     </section>
   </main>
 
+  <main id="declined-shell" class="consent-shell" hidden inert aria-labelledby="declined-title" aria-describedby="declined-description">
+    <section class="consent-card">
+      <div class="consent-heading">
+        <img class="app-icon" src="./icons/icon-192.png" alt="" width="56" height="56">
+        <div>
+          <p class="eyebrow">Application Closed</p>
+          <h1 id="declined-title" tabindex="-1">利用を終了しました</h1>
+        </div>
+      </div>
+      <p id="declined-description">利用規約とプライバシーポリシーに同意されなかったため、BioLog Mobileの通常機能は開始していません。</p>
+      <p>この操作で、既に保存されている健康記録や同意記録は削除されません。</p>
+      <p>この画面が自動的に閉じない場合は、ブラウザまたはホーム画面アプリを閉じてください。再度確認する場合は、ページを再読み込みしてください。</p>
+    </section>
+  </main>
+
   <main id="app-shell" class="app-shell" hidden inert>
     <header class="app-header" aria-label="BioLog Mobile">
       <img class="app-icon" src="./icons/icon-192.png" alt="" width="48" height="48">
@@ -192,4 +207,3 @@
   <script src="./app.js" defer></script>
 </body>
 </html>
-

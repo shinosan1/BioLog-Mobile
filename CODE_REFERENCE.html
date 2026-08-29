@@ -1,0 +1,99 @@
+<!doctype html>
+<html lang="ja">
+<head>
+  <meta charset="utf-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1, viewport-fit=cover">
+  <meta name="theme-color" content="#2E7D32">
+  <meta name="description" content="BioLog Mobile code reference">
+  <title>コード解説 | BioLog Mobile</title>
+  <script>
+    (function () {
+      try {
+        var saved = localStorage.getItem("biolog_mobile_theme");
+        var theme = saved || (
+          window.matchMedia &&
+          window.matchMedia("(prefers-color-scheme: dark)").matches
+            ? "dark"
+            : "light"
+        );
+        document.documentElement.dataset.theme = theme;
+      } catch (error) {
+        document.documentElement.dataset.theme = "light";
+      }
+    }());
+  </script>
+  <link rel="icon" type="image/png" sizes="192x192" href="./icons/icon-192.png">
+  <link rel="stylesheet" href="./styles.css">
+</head>
+<body class="readme-page">
+  <main class="readme-shell">
+    <header class="readme-hero">
+      <a class="readme-back" href="./readme.html">ガイドへ戻る</a>
+      <div class="readme-hero-title">
+        <img class="app-icon" src="./icons/icon-192.png" alt="" width="56" height="56">
+        <div>
+          <p class="eyebrow">Code Reference</p>
+          <h1>コード解説</h1>
+          <p>BioLog Mobileの現在の構成、データの流れ、保守時に守るべき前提をまとめた技術資料です。</p>
+        </div>
+      </div>
+    </header>
+
+    <section class="readme-card">
+      <p class="eyebrow">Overview</p>
+      <h2>アプリの構成</h2>
+      <p>BioLog Mobileは、依存パッケージやビルド工程を使わない静的なHTML／CSS／JavaScriptのPWAです。<code>index.html</code> が画面の土台を持ち、各JavaScriptファイルを読み込んで端末内の健康記録を扱います。</p>
+      <p>健康記録の保存先はブラウザのIndexedDBです。テーマと規約・プライバシーポリシーへの同意記録はlocalStorage、オフライン表示用のアプリ資産はCache Storageに保存されます。</p>
+    </section>
+
+    <section class="readme-card">
+      <p class="eyebrow">Modules</p>
+      <h2>主要ファイルの役割</h2>
+      <ul class="readme-list">
+        <li><code>index.html</code>：画面の枠、各タブ、入力・バックアップ操作の要素を定義し、JavaScriptを読み込みます。</li>
+        <li><code>app.js</code>：画面状態、タブ切替、フォーム送信、履歴・グラフ表示、バックアップ操作、同意画面とService Worker登録をつなぎます。</li>
+        <li><code>consent.js</code>：利用規約・プライバシーポリシーの同意対象版と日時をlocalStorageへ保存し、有効性を確認します。</li>
+        <li><code>db.js</code>：IndexedDBの<code>biolog_mobile</code>データベースと<code>health_records</code>ストアを管理します。</li>
+        <li><code>form.js</code>：測定項目の範囲確認、フォーム値の変換、表示用の整形を担当します。</li>
+        <li><code>backup.js</code>：JSONバックアップの作成、形式検証、原子的な復元を担当します。</li>
+        <li><code>csv.js</code>：UTF-8 CSVを解析・検証し、記録として取り込みます。</li>
+        <li><code>charts.js</code>：保存済みの測定値から、ブラウザ標準のSVG要素でグラフを描画します。</li>
+        <li><code>service-worker.js</code>：アプリ資産をCache Storageへ保存し、同一オリジンのGET要求に対してネットワーク優先・失敗時キャッシュ利用を行います。</li>
+        <li><code>test.html</code>／<code>test.js</code>：別のテスト用データベースを用い、保存・検証・表示・PWA設定を確認する手動実行用のテストです。</li>
+      </ul>
+    </section>
+
+    <section class="readme-card">
+      <p class="eyebrow">Data Flow</p>
+      <h2>記録の処理の流れ</h2>
+      <div class="readme-steps">
+        <p><strong>1. 同意確認:</strong> <code>consent.js</code>が有効な同意記録を確認し、同意済みの場合だけ<code>app.js</code>の<code>startApplication()</code>が通常機能を開始します。</p>
+        <p><strong>2. 入力と検証:</strong> <code>BioLogForm.buildPayloadFromForm()</code>が値を取り出し、<code>validatePayload()</code>が測定範囲と必要な入力を確認します。</p>
+        <p><strong>3. 保存:</strong> <code>BioLogDB.upsertRecord()</code>が、利用者識別子<code>self</code>と日付の組み合わせを基準に、1日1件の記録を追加または更新します。</p>
+        <p><strong>4. 表示:</strong> 履歴は<code>getAllRecords()</code>、グラフは<code>BioLogCharts.renderCharts()</code>で再描画します。入力済みテキストはDOMのテキストとして表示します。</p>
+        <p><strong>5. バックアップ:</strong> JSONは<code>buildExportPayload()</code>で書き出し、復元時は形式・日付・項目・重複を検証してから<code>importRecordsAtomic()</code>で反映します。</p>
+      </div>
+    </section>
+
+    <section class="readme-card">
+      <p class="eyebrow">Stored Record</p>
+      <h2>保存する項目</h2>
+      <p>数値項目は体重、体温、収縮期血圧、拡張期血圧、脈拍、体脂肪率、基礎代謝、筋肉量です。テキスト項目は食事ログ、行動ログ、メモです。各記録には日付、作成・更新日時、内部識別子も保持されます。</p>
+      <p>IndexedDBでは<code>date_user</code>に日付と<code>self</code>を結合した値を保存し、同じ日付の重複を防ぎます。</p>
+    </section>
+
+    <section class="readme-card readme-alert">
+      <p class="eyebrow">Maintenance</p>
+      <h2>保守時の重要な前提</h2>
+      <ul class="readme-list">
+        <li>健康記録はIndexedDBに保存されます。DB名、ストア名、保存形式、日付ごとに1件という挙動を、移行なしに変更しないでください。</li>
+        <li>JSON／CSVの取込では、検証後に記録を反映します。入力検証や原子的な復元処理を迂回しないでください。</li>
+        <li>Service Workerの更新は健康記録を削除しません。キャッシュ削除は<code>biolog-mobile-</code>接頭辞の旧キャッシュだけに限定します。</li>
+        <li>Cache Storage、localStorage、IndexedDBは別の保存領域です。キャッシュや同意記録を消しても、健康記録の削除とは別の操作です。</li>
+        <li>ブラウザのサイトデータ削除や端末変更に備え、利用者にはJSONバックアップを案内してください。</li>
+      </ul>
+      <p>用語の意味は<a href="./GLOSSARY.html">用語解説</a>を参照してください。</p>
+    </section>
+  </main>
+</body>
+</html>

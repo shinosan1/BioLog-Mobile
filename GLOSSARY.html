@@ -1,0 +1,99 @@
+<!doctype html>
+<html lang="ja">
+<head>
+  <meta charset="utf-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1, viewport-fit=cover">
+  <meta name="theme-color" content="#2E7D32">
+  <meta name="description" content="BioLog Mobile glossary">
+  <title>用語解説 | BioLog Mobile</title>
+  <script>
+    (function () {
+      try {
+        var saved = localStorage.getItem("biolog_mobile_theme");
+        var theme = saved || (
+          window.matchMedia &&
+          window.matchMedia("(prefers-color-scheme: dark)").matches
+            ? "dark"
+            : "light"
+        );
+        document.documentElement.dataset.theme = theme;
+      } catch (error) {
+        document.documentElement.dataset.theme = "light";
+      }
+    }());
+  </script>
+  <link rel="icon" type="image/png" sizes="192x192" href="./icons/icon-192.png">
+  <link rel="stylesheet" href="./styles.css">
+</head>
+<body class="readme-page">
+  <main class="readme-shell">
+    <header class="readme-hero">
+      <a class="readme-back" href="./readme.html">ガイドへ戻る</a>
+      <div class="readme-hero-title">
+        <img class="app-icon" src="./icons/icon-192.png" alt="" width="56" height="56">
+        <div>
+          <p class="eyebrow">Glossary</p>
+          <h1>用語解説</h1>
+          <p>BioLog Mobileで使う保存・更新・バックアップに関する主な用語を説明します。</p>
+        </div>
+      </div>
+    </header>
+
+    <section class="readme-card">
+      <p class="eyebrow">Application</p>
+      <h2>PWA</h2>
+      <p>Progressive Web Appの略です。Webページをホーム画面に追加し、アプリに近い形で使う仕組みです。BioLog Mobileでは、アプリの画面やプログラムを端末に保存してオフライン表示を補助します。</p>
+    </section>
+
+    <section class="readme-card">
+      <p class="eyebrow">Storage</p>
+      <h2>IndexedDB</h2>
+      <p>ブラウザが端末内に保存するデータベースです。BioLog Mobileでは、健康記録をここに保存します。ブラウザのサイトデータを削除すると、健康記録も削除されることがあります。</p>
+    </section>
+
+    <section class="readme-card">
+      <p class="eyebrow">Storage</p>
+      <h2>localStorage</h2>
+      <p>ブラウザが端末内に保存する小さな設定領域です。BioLog Mobileでは、ライト・ダークのテーマと、利用規約・プライバシーポリシーへの同意記録を保存します。健康記録の保存先ではありません。</p>
+    </section>
+
+    <section class="readme-card">
+      <p class="eyebrow">Offline</p>
+      <h2>Service Worker と Cache Storage</h2>
+      <p>Service Workerは、Webアプリの通信とオフライン表示を補助するブラウザ機能です。Cache Storageには、画面、スタイル、プログラム、アイコン、文書などのアプリ資産が保存されます。健康記録はここには保存されません。</p>
+      <p>更新時は、BioLog Mobile自身の古い<code>biolog-mobile-</code>キャッシュだけを整理します。</p>
+    </section>
+
+    <section class="readme-card">
+      <p class="eyebrow">Record</p>
+      <h2>健康記録・日付・date_user</h2>
+      <p>健康記録は、測定値、食事ログ、行動ログ、メモなどをまとめた1件のデータです。BioLog Mobileでは、利用者識別子<code>self</code>と日付を組み合わせた<code>date_user</code>を内部的に使い、同じ日付の記録を1件に保ちます。</p>
+    </section>
+
+    <section class="readme-card">
+      <p class="eyebrow">Backup</p>
+      <h2>JSONバックアップ</h2>
+      <p>アプリが作成する完全復元用のバックアップ形式です。日付、測定値、テキスト項目、作成・更新日時などを含みます。復元時には形式と各項目を確認してから保存します。</p>
+    </section>
+
+    <section class="readme-card">
+      <p class="eyebrow">Import</p>
+      <h2>CSV取り込み</h2>
+      <p>CSVは表形式のテキストファイルです。BioLog Mobileでは外部データの取り込みに使います。完全な復元にはJSONバックアップを使用してください。</p>
+    </section>
+
+    <section class="readme-card">
+      <p class="eyebrow">Update</p>
+      <h2>アプリを更新</h2>
+      <p>画面右上の「アプリを更新」は、現在のWebアプリ資産の更新確認と再読み込みを行います。入力途中の内容は失われるため、必要な記録を保存してから実行してください。IndexedDBに保存済みの健康記録を削除する操作ではありません。</p>
+    </section>
+
+    <section class="readme-card readme-alert">
+      <p class="eyebrow">Important</p>
+      <h2>保存領域を削除する前に</h2>
+      <p>健康記録、テーマ・同意記録、オフライン用キャッシュ、端末に保存したバックアップファイルは、それぞれ別の場所に保存されます。端末変更、ホーム画面アイコンの削除、ブラウザのサイトデータ削除の前には、JSONバックアップを保存してください。</p>
+      <p>実装の詳細は<a href="./CODE_REFERENCE.html">コード解説</a>で確認できます。</p>
+    </section>
+  </main>
+</body>
+</html>

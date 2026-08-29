@@ -491,6 +491,28 @@
     );
     ok("app checks current consent", appText.indexOf("BioLogConsent.hasValidConsent") !== -1);
     ok("app saves consent before start", appText.indexOf("BioLogConsent.saveConsent") !== -1);
+    ok("declined screen starts hidden and inert", indexText.indexOf('id="declined-shell" class="consent-shell" hidden inert') !== -1);
+    var declinedViewText = appText.slice(
+      appText.indexOf("function showConsentDeclined"),
+      appText.indexOf("function updateConsentSubmitState")
+    );
+    var declineHandlerText = appText.slice(
+      appText.indexOf("function handleConsentDecline"),
+      appText.indexOf("function bindConsentControls")
+    );
+    ok(
+      "declining hides the consent and application shells",
+      declinedViewText.indexOf("els.appShell.hidden = true") !== -1 &&
+        declinedViewText.indexOf("els.consentGate.hidden = true") !== -1 &&
+        declinedViewText.indexOf("els.declinedShell.hidden = false") !== -1
+    );
+    ok(
+      "declining attempts to close without starting the application",
+      declinedViewText.indexOf("window.close()") !== -1 &&
+        declineHandlerText.indexOf("startApplication") === -1 &&
+        declineHandlerText.indexOf("BioLogDB.openDB") === -1 &&
+        declineHandlerText.indexOf("registerServiceWorker") === -1
+    );
     ok("app update button is bound", appText.indexOf('els.appUpdateButton.addEventListener("click", handleAppUpdate)') !== -1);
     ok("app update warns about unsaved input", appText.indexOf("入力途中の内容は失われます") !== -1);
     ok("app update bypasses service worker http cache", appText.indexOf('updateViaCache: "none"') !== -1);
@@ -529,7 +551,10 @@
     ok("service worker caches consent module", serviceWorkerText.indexOf('"./consent.js"') !== -1);
     ok("service worker caches privacy policy", serviceWorkerText.indexOf('"./privacy.html"') !== -1);
     ok("service worker caches terms", serviceWorkerText.indexOf('"./terms.html"') !== -1);
+    ok("service worker caches SHA256 list", serviceWorkerText.indexOf('"./sha256.html"') !== -1);
     ok("service worker cache version updated", serviceWorkerText.indexOf("biolog-mobile-v2.13.5") !== -1);
+    ok("service worker cleanup filters the BioLog cache prefix", serviceWorkerText.indexOf('name.startsWith("biolog-mobile-")') !== -1);
+    ok("service worker cleanup preserves the current and unrelated caches", serviceWorkerText.indexOf('names.filter((name) => name.startsWith("biolog-mobile-") && name !== CACHE_NAME)') !== -1);
     ok("service worker install bypasses http cache", serviceWorkerText.indexOf('{ cache: "reload" }') !== -1);
     ok("service worker online fetch bypasses http cache", serviceWorkerText.indexOf('{ cache: "no-store" }') !== -1);
     ok("service worker waits for skip waiting", serviceWorkerText.indexOf("event.waitUntil(self.skipWaiting())") !== -1);

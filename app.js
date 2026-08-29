@@ -1177,6 +1177,8 @@
   function cacheElements() {
     els.consentGate = document.getElementById("consent-gate");
     els.consentTitle = document.getElementById("consent-title");
+    els.declinedShell = document.getElementById("declined-shell");
+    els.declinedTitle = document.getElementById("declined-title");
     els.consentForm = document.getElementById("consent-form");
     els.consentTermsCheckbox = document.getElementById("consent-terms-checkbox");
     els.consentPrivacyCheckbox = document.getElementById("consent-privacy-checkbox");
@@ -1216,6 +1218,10 @@
       els.appShell.hidden = true;
       els.appShell.inert = true;
     }
+    if (els.declinedShell) {
+      els.declinedShell.hidden = true;
+      els.declinedShell.inert = true;
+    }
     if (els.consentGate) {
       els.consentGate.hidden = false;
       els.consentGate.inert = false;
@@ -1235,10 +1241,38 @@
       els.consentGate.hidden = true;
       els.consentGate.inert = true;
     }
+    if (els.declinedShell) {
+      els.declinedShell.hidden = true;
+      els.declinedShell.inert = true;
+    }
     if (els.appShell) {
       els.appShell.hidden = false;
       els.appShell.inert = false;
     }
+  }
+
+  function showConsentDeclined() {
+    if (els.appShell) {
+      els.appShell.hidden = true;
+      els.appShell.inert = true;
+    }
+    if (els.consentGate) {
+      els.consentGate.hidden = true;
+      els.consentGate.inert = true;
+    }
+    if (els.declinedShell) {
+      els.declinedShell.hidden = false;
+      els.declinedShell.inert = false;
+    }
+
+    window.requestAnimationFrame(function () {
+      if (els.declinedTitle) {
+        els.declinedTitle.focus();
+      }
+      if (typeof window.close === "function") {
+        window.close();
+      }
+    });
   }
 
   function updateConsentSubmitState() {
@@ -1315,12 +1349,7 @@
     els.consentTermsCheckbox.checked = false;
     els.consentPrivacyCheckbox.checked = false;
     updateConsentSubmitState();
-    showMessage(
-      els.consentMessage,
-      "同意しない場合、BioLog Mobileは開始されません。既に保存されている健康記録は、この操作では削除されません。削除方法はプライバシーポリシーの「保存データの削除」をご確認ください。利用しない場合はこの画面を閉じてください。",
-      "error"
-    );
-    els.consentTitle.focus();
+    showConsentDeclined();
   }
 
   function bindConsentControls() {
