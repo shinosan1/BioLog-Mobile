@@ -1,0 +1,82 @@
+<!doctype html>
+<html lang="ja">
+<head>
+  <meta charset="utf-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1, viewport-fit=cover">
+  <meta name="theme-color" content="#2E7D32">
+  <meta name="description" content="BioLog Mobile サードパーティライセンス">
+  <title>BioLog Mobile サードパーティライセンス</title>
+  <script>
+    (function () {
+      try {
+        var saved = localStorage.getItem("biolog_mobile_theme");
+        var theme = saved || (
+          window.matchMedia &&
+          window.matchMedia("(prefers-color-scheme: dark)").matches
+            ? "dark"
+            : "light"
+        );
+        document.documentElement.dataset.theme = theme;
+      } catch (error) {
+        document.documentElement.dataset.theme = "light";
+      }
+    }());
+  </script>
+  <link rel="icon" type="image/png" sizes="192x192" href="./icons/icon-192.png">
+  <link rel="stylesheet" href="./styles.css">
+</head>
+<body class="readme-page">
+  <main class="readme-shell">
+    <header class="readme-hero">
+      <a class="readme-back" href="./index.html">BioLog Mobileへ戻る</a>
+      <div class="readme-hero-title">
+        <img class="app-icon" src="./icons/icon-192.png" alt="" width="56" height="56">
+        <div>
+          <p class="eyebrow">Third-Party Licenses</p>
+          <h1>サードパーティライセンス</h1>
+          <p>本アプリが依存する第三者ソフトウェアのライセンス情報です。</p>
+        </div>
+      </div>
+    </header>
+
+    <section class="readme-card readme-alert">
+      <p class="eyebrow">Method</p>
+      <h2>確認方法</h2>
+      <p>本アプリの全JavaScriptファイル(<code>app.js</code>・<code>consent.js</code>・<code>db.js</code>・<code>form.js</code>・<code>backup.js</code>・<code>csv.js</code>・<code>charts.js</code>・<code>service-worker.js</code>)を対象に、外部URL・CDN読み込み・<code>import</code>文・<code>require</code>呼び出しの有無を確認しました。</p>
+    </section>
+
+    <section class="readme-card">
+      <p class="eyebrow">Runtime Dependencies</p>
+      <h2>ランタイムの第三者ライブラリ</h2>
+      <p><strong>確認した範囲では、本アプリはランタイムの第三者JavaScriptライブラリを使用していません。</strong>npm、React、Vue、Vite、Next.js等のフレームワークやビルドツールも使用せず、vanilla HTML / CSS / JavaScriptのみで構成されています。外部CDNからのスクリプト・スタイルシートの読み込みもありません。</p>
+      <p>グラフ描画(<code>charts.js</code>)は、ブラウザ標準のSVG要素(<code>http://www.w3.org/2000/svg</code>名前空間)を直接操作して実装されており、外部グラフ描画ライブラリは使用していません。</p>
+    </section>
+
+    <section class="readme-card">
+      <p class="eyebrow">Web Platform APIs</p>
+      <h2>利用しているブラウザ標準機能</h2>
+      <p>以下はいずれもブラウザ・OSが提供するWeb標準APIであり、本アプリが追加で導入した第三者ソフトウェアではありません。それぞれの実装はブラウザベンダーのライセンス・利用条件に従います。</p>
+      <ul class="readme-list">
+        <li>IndexedDB(健康記録の保存)</li>
+        <li>localStorage(テーマ設定・同意記録の保存)</li>
+        <li>Cache Storage / Service Worker(オフライン表示)</li>
+        <li>SVG(グラフ描画)</li>
+      </ul>
+    </section>
+
+    <section class="readme-card">
+      <p class="eyebrow">Assets</p>
+      <h2>アイコン・画像アセットについて</h2>
+      <p><code>icons/</code>配下のアプリアイコン(<code>icon.svg</code>・<code>icon-192.png</code>・<code>icon-512.png</code>)、および<code>install-qr.png</code>・<code>install-qr.svg</code>について、作成者・ライセンス情報を示すファイルは確認できませんでした。断定はせず、出所が未確認である旨を記載します。これらの画像アセットの再利用を検討する場合は、あらためて出所をご確認ください。</p>
+    </section>
+
+    <section class="readme-card">
+      <p class="eyebrow">Distribution</p>
+      <h2>配布時の注意</h2>
+      <p>本アプリのソースコード本体は<a href="./LICENSE.html">MIT License</a>で公開されています。本書は、本体コードとは別に、実行環境で読み込まれる第三者ソフトウェアの有無を確認した結果です。将来、第三者ライブラリを追加導入する場合は、本文書もあわせて更新してください。</p>
+      <p>運営者: 司乃プロジェクト（Shino Project）</p>
+      <p>Copyright &copy; 2026 Shino Project</p>
+    </section>
+  </main>
+</body>
+</html>

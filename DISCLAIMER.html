@@ -1,0 +1,89 @@
+<!doctype html>
+<html lang="ja">
+<head>
+  <meta charset="utf-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1, viewport-fit=cover">
+  <meta name="theme-color" content="#2E7D32">
+  <meta name="description" content="BioLog Mobile 免責事項">
+  <title>BioLog Mobile 免責事項</title>
+  <script>
+    (function () {
+      try {
+        var saved = localStorage.getItem("biolog_mobile_theme");
+        var theme = saved || (
+          window.matchMedia &&
+          window.matchMedia("(prefers-color-scheme: dark)").matches
+            ? "dark"
+            : "light"
+        );
+        document.documentElement.dataset.theme = theme;
+      } catch (error) {
+        document.documentElement.dataset.theme = "light";
+      }
+    }());
+  </script>
+  <link rel="icon" type="image/png" sizes="192x192" href="./icons/icon-192.png">
+  <link rel="stylesheet" href="./styles.css">
+</head>
+<body class="readme-page">
+  <main class="readme-shell">
+    <header class="readme-hero">
+      <a class="readme-back" href="./index.html">BioLog Mobileへ戻る</a>
+      <div class="readme-hero-title">
+        <img class="app-icon" src="./icons/icon-192.png" alt="" width="56" height="56">
+        <div>
+          <p class="eyebrow">Disclaimer</p>
+          <h1>免責事項</h1>
+          <p>BioLog Mobile の利用に関する注意事項をまとめています。法的な条件は<a href="./TERMS_OF_USE.html">利用規約</a>に定めるとおりで、本書はこれを補足するものです。</p>
+        </div>
+      </div>
+    </header>
+
+    <section class="readme-card">
+      <p class="eyebrow">Warranty</p>
+      <h2>保証の否認</h2>
+      <p>本アプリは現状有姿(as-is)で提供され、明示・黙示を問わずいかなる保証も行いません。不具合がないこと、保存データが失われないこと、すべての端末・OS・ブラウザで動作することは保証しません。責任範囲の詳細は<a href="./TERMS_OF_USE.html">利用規約</a>を確認してください。</p>
+    </section>
+
+    <section class="readme-card readme-alert">
+      <p class="eyebrow">Health Notice</p>
+      <h2>健康・医療に関する注意</h2>
+      <p>本アプリは日々の健康記録を補助するための個人向けツールであり、医療行為、診断、治療、助言を目的としたものではありません。本アプリの表示や記録だけに基づいて、服薬量の調整、受診の要否その他の重要または緊急の健康・医療判断を行わないでください。体調不良、異常値、健康上の不安がある場合は、医師などの専門家に相談してください。</p>
+    </section>
+
+    <section class="readme-card readme-alert">
+      <p class="eyebrow">Local Storage Risk</p>
+      <h2>データの保存とバックアップに関するリスク</h2>
+      <p>健康記録はブラウザのIndexedDB(データベース名<code>biolog_mobile</code>)に、テーマや同意記録はlocalStorageに、オフライン表示用のアプリ資産はCache Storageに保存されます。これらはいずれも<strong>暗号化されていません</strong>。</p>
+      <p>ブラウザのサイトデータ削除、端末の初期化・故障・紛失、ブラウザやOSの仕様変更、ホーム画面アイコンの削除に伴うデータ整理などにより、保存データが失われる場合があります。本アプリには自動クラウド同期や自動バックアップの機能はありません。大切な記録は、バックアップタブから定期的にバックアップファイル(<code>biolog-mobile-backup-YYYY-MM-DD.json</code>)として保存し、利用者ご自身の責任で安全な場所へ保管してください。</p>
+    </section>
+
+    <section class="readme-card">
+      <p class="eyebrow">Backup / CSV Import</p>
+      <h2>バックアップ・CSV取り込みの検証について</h2>
+      <p>バックアップファイル(JSON)およびCSVファイルの取り込みには検証処理があり、日付の実在性、数値項目の型・範囲、未対応キーの有無などを確認します。<strong>1件でも不正な記録が含まれる場合、そのファイル全体を取り込みません</strong>(部分的な取り込みは行いません)。同じ日付の記録を取り込んだ場合は、既存の記録が新しい内容で置き換えられます(上書き)。</p>
+      <p>この検証は入力形式の整合性を確認するものであり、記録内容そのものの医学的な正しさを保証するものではありません。取り込み前後で記録内容をご確認ください。</p>
+    </section>
+
+    <section class="readme-card">
+      <p class="eyebrow">PWA / Offline</p>
+      <h2>PWA・オフライン動作に関する注意</h2>
+      <p>本アプリはService Workerによりアプリ資産をオフラインでも表示できるようにしていますが、公開後の最新版を反映するには、オンライン状態で画面の「アプリを更新」操作が必要です。更新確認時に画面が再読み込みされるため、入力途中の内容は保存されません。必要な記録は保存してから更新してください。</p>
+    </section>
+
+    <section class="readme-card">
+      <p class="eyebrow">Third-Party Software</p>
+      <h2>第三者ソフトウェアについて</h2>
+      <p>確認した範囲では、本アプリはランタイムの第三者JavaScriptライブラリや外部CDNを使用しない構成です。詳細は<a href="./THIRD_PARTY_LICENSES.html">サードパーティライセンス</a>を参照してください。ただし、利用しているブラウザ・OS自体の不具合や仕様変更による影響は、本アプリの制御範囲外です。</p>
+    </section>
+
+    <section class="readme-card">
+      <p class="eyebrow">Beta</p>
+      <h2>ベータ版です</h2>
+      <p>本アプリは無料公開中のベータ版で、動作確認・使い勝手の確認を目的としています。今後、仕様や提供方法が変更される可能性があります。重要な記録は本アプリの提供状況にかかわらず、利用者ご自身でバックアップしてください。</p>
+      <p>運営者: 司乃プロジェクト（Shino Project）</p>
+      <p>Copyright &copy; 2026 Shino Project</p>
+    </section>
+  </main>
+</body>
+</html>

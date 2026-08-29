@@ -456,8 +456,8 @@
     ok("consent button starts disabled", indexDoc.getElementById("consent-agree-button").disabled);
     ok("app starts hidden", indexDoc.getElementById("app-shell").hidden);
     ok("app starts inert", indexDoc.getElementById("app-shell").hasAttribute("inert"));
-    ok("terms link is local", indexDoc.querySelector("a[href='./terms.html']") !== null);
-    ok("privacy link is local", indexDoc.querySelector("a[href='./privacy.html']") !== null);
+    ok("terms link is local", indexDoc.querySelector("a[href='./TERMS_OF_USE.html']") !== null);
+    ok("privacy link is local", indexDoc.querySelector("a[href='./PRIVACY_POLICY.html']") !== null);
     ok("index does not read saved theme", indexText.indexOf("biolog_mobile_theme") === -1);
     var headerActions = indexDoc.querySelector(".header-actions");
     var themeToggle = indexDoc.getElementById("theme-toggle");
@@ -528,10 +528,10 @@
     ok("database startup stays inside consent-gated start", startApplicationText.indexOf("BioLogDB.openDB") !== -1);
     ok("service worker registration stays inside consent-gated start", startApplicationText.indexOf("registerServiceWorker") !== -1);
 
-    var privacyText = await fetch("./privacy.html").then(function (response) {
+    var privacyText = await fetch("./PRIVACY_POLICY.html").then(function (response) {
       return response.text();
     });
-    var termsText = await fetch("./terms.html").then(function (response) {
+    var termsText = await fetch("./TERMS_OF_USE.html").then(function (response) {
       return response.text();
     });
     ok("privacy policy version", privacyText.indexOf("文書バージョン: 2026-07-14-2") !== -1);
@@ -549,10 +549,10 @@
       return response.text();
     });
     ok("service worker caches consent module", serviceWorkerText.indexOf('"./consent.js"') !== -1);
-    ok("service worker caches privacy policy", serviceWorkerText.indexOf('"./privacy.html"') !== -1);
-    ok("service worker caches terms", serviceWorkerText.indexOf('"./terms.html"') !== -1);
-    ok("service worker caches SHA256 list", serviceWorkerText.indexOf('"./sha256.html"') !== -1);
-    ok("service worker cache version updated", serviceWorkerText.indexOf("biolog-mobile-v2.13.5") !== -1);
+    ok("service worker caches privacy policy", serviceWorkerText.indexOf('"./PRIVACY_POLICY.html"') !== -1);
+    ok("service worker caches terms", serviceWorkerText.indexOf('"./TERMS_OF_USE.html"') !== -1);
+    ok("service worker caches SHA256 list", serviceWorkerText.indexOf('"./SHA256.html"') !== -1);
+    ok("service worker cache version updated", serviceWorkerText.indexOf("biolog-mobile-v2.13.6") !== -1);
     ok("service worker cleanup filters the BioLog cache prefix", serviceWorkerText.indexOf('name.startsWith("biolog-mobile-")') !== -1);
     ok("service worker cleanup preserves the current and unrelated caches", serviceWorkerText.indexOf('names.filter((name) => name.startsWith("biolog-mobile-") && name !== CACHE_NAME)') !== -1);
     ok("service worker install bypasses http cache", serviceWorkerText.indexOf('{ cache: "reload" }') !== -1);

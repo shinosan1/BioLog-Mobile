@@ -1,14 +1,14 @@
-const CACHE_NAME = "biolog-mobile-v2.13.5";
+const CACHE_NAME = "biolog-mobile-v2.13.6";
 const CACHE_URLS = [
   "./",
   "./index.html",
-  "./readme.html",
+  "./README.html",
   "./CODE_REFERENCE.html",
   "./GLOSSARY.html",
-  "./sha256.html",
-  "./license.html",
-  "./privacy.html",
-  "./terms.html",
+  "./SHA256.html",
+  "./LICENSE.html",
+  "./PRIVACY_POLICY.html",
+  "./TERMS_OF_USE.html",
   "./styles.css",
   "./consent.js",
   "./db.js",
