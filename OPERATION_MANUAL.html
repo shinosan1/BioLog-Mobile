@@ -1,0 +1,184 @@
+<!doctype html>
+<html lang="ja">
+<head>
+  <meta charset="utf-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1">
+  <meta name="theme-color" content="#0f766e">
+  <meta name="description" content="BioLog Mobile 操作マニュアル">
+  <title>操作マニュアル | BioLog Mobile</title>
+  <link rel="icon" href="./icon.svg" type="image/svg+xml">
+  <link rel="stylesheet" href="./styles.css">
+</head>
+<body class="readme-page">
+  <main class="readme-shell">
+    <header class="readme-hero">
+      <a class="readme-back" href="./README.html">利用ガイドへ戻る</a>
+      <div class="readme-hero-title">
+        <img src="./icon.svg" alt="" width="64" height="64">
+        <div>
+          <p class="eyebrow">OPERATION MANUAL</p>
+          <h1>BioLog Mobile 操作マニュアル</h1>
+          <p class="readme-lead">OPERATION_MANUAL.md のHTML版です。原本のMarkdownは変更していません。</p>
+        </div>
+      </div>
+    </header>
+
+    <section class="readme-card">
+      <h2>健康・医療に関する注意</h2>
+      <p>BioLog Mobile は日々の健康記録を補助するための個人向けツールです。医療行為、診断、治療、助言を目的としたものではありません。</p>
+      <p>記録内容、健康状態、医療上の判断は利用者自身の責任で行ってください。体調不良、異常値、健康上の不安がある場合は、医師などの専門家に相談してください。</p>
+      <p>動作保証、データ保存の注意および責任範囲の詳細は、<a href="./TERMS_OF_USE.html">利用規約</a> と <a href="./DISCLAIMER.html">免責・重要事項</a> を確認してください。</p>
+    </section>
+
+    <section class="readme-card">
+      <h2>PWAについて</h2>
+      <p>BioLog Mobile はPWAです。Webアプリですが、スマホのホーム画面にアイコンを追加して起動できます。App StoreやGoogle Playからインストールするアプリではありません。</p>
+      <p>記録データは端末のブラウザ内に保存されます。ブラウザのサイトデータを削除すると記録も消えるため、定期的にJSONバックアップを書き出してください。iPhoneでは、Safariで見えるデータとホーム画面版で見えるデータが分かれて見える場合があります。ホーム画面アイコンを削除・再追加する前には、必ずバックアップファイルを保存してください。</p>
+    </section>
+
+    <section class="readme-card">
+      <h2>1. 起動する</h2>
+      <p>公開URLをスマホのブラウザで開きます。ホーム画面に追加している場合は、BioLog Mobileのアイコンから起動します。</p>
+      <p>初回利用時と、利用規約またはプライバシーポリシーの同意対象版が改定されたときは、同意画面が表示されます。内容を確認して同意すると、通常機能の起動とオフライン利用の準備が始まります。同意前は健康記録の保存場所を開きません。</p>
+      <p>同意記録は端末のブラウザ内にだけ保存され、外部サーバーには送信されません。同意しない場合も既存の健康記録は削除されず、同意後も維持されます。起動後に「端末内に保存できます。」と表示されれば、記録を保存できます。</p>
+      <p><a href="./TERMS_OF_USE.html">利用規約</a> / <a href="./PRIVACY_POLICY.html">プライバシーポリシー</a></p>
+      <h3>アプリを更新する</h3>
+      <ol>
+        <li>入力途中の内容がないことを確認します。</li>
+        <li>端末をオンラインにします。</li>
+        <li>画面右上のライト／ダーク切り替えの下にある「アプリを更新」を押します。</li>
+        <li>確認画面で「OK」を押します。</li>
+        <li>「更新中...」の表示後、自動的に画面が再読み込みされるまで待ちます。</li>
+      </ol>
+      <p>この操作はアプリ本体のファイルを更新するもので、IndexedDB内の健康記録は削除しません。</p>
+    </section>
+
+    <section class="readme-card">
+      <h2>2. ホーム画面に追加する</h2>
+      <h3>Android</h3>
+      <ol><li>ChromeでBioLog Mobileを開きます。</li><li>右上メニューを開きます。</li><li>「ホーム画面に追加」または「アプリをインストール」を選びます。</li><li>追加後、ホーム画面のアイコンから起動します。</li></ol>
+      <h3>iPhone</h3>
+      <ol><li>SafariでBioLog Mobileを開きます。</li><li>共有ボタンを押します。</li><li>「ホーム画面に追加」を選びます。</li><li>追加後、ホーム画面のアイコンから起動します。</li></ol>
+    </section>
+
+    <section class="readme-card">
+      <h2>3. 今日の記録を保存する</h2>
+      <ol><li>「今日」タブを開きます。</li><li>必要な項目を入力します。</li><li>「今日の記録を保存」を押します。</li></ol>
+      <p>入力できる項目は、体重、体温、収縮期血圧、拡張期血圧、脈拍、体脂肪率、基礎代謝量、筋肉量、食事ログ、行動ログ、メモです。測定値がなくても、食事ログ、行動ログ、メモのいずれかがあれば保存できます。</p>
+    </section>
+
+    <section class="readme-card">
+      <h2>4. 日付を指定して登録・編集する</h2>
+      <ol><li>「日付編集」タブを開きます。</li><li>対象日を選びます。</li><li>「読み込む」を押します。</li><li>既存の記録があれば内容が表示されます。</li><li>記録がない日付なら、新規登録として入力できます。</li><li>入力または修正後、「保存する」を押します。</li></ol>
+      <p>日付を変更しただけでは保存できません。別の日付に保存したい場合は、必ず「読み込む」を押してから入力してください。数値項目を空欄にした場合、既存記録の更新ではその項目の既存値が保持されます。テキスト項目は画面上の編集では空文字として保存できます。</p>
+    </section>
+
+    <section class="readme-card">
+      <h2>5. サマリーを見る</h2>
+      <p>ホーム上部に、当日の主要指標が表示されます。表示項目は体重、体温、血圧、脈拍です。今日の記録がある場合は今日の記録だけを表示し、記録や入力項目がない場合は <code>--</code> と表示されます。過去データで補完することはありません。「今日」タブ内にも主要指標の一覧を表示します。</p>
+    </section>
+
+    <section class="readme-card">
+      <h2>6. 履歴を見る</h2>
+      <ol><li>「履歴」タブを開きます。</li><li>保存済みの記録が日付順に表示されます。</li><li>各カードで測定値、食事、行動、メモ、更新時刻を確認できます。</li></ol>
+      <p>更新時刻は端末のローカル時刻で表示されます。</p>
+    </section>
+
+    <section class="readme-card">
+      <h2>7. 履歴を編集する</h2>
+      <ol><li>「履歴」タブを開きます。</li><li>編集したい記録の「編集」を押します。</li><li>内容を変更します。</li><li>「更新する」を押します。</li></ol>
+      <p>数値項目を空欄にした場合、その項目の既存値は保持されます。テキスト項目は画面上の編集では空文字として保存できます。</p>
+    </section>
+
+    <section class="readme-card">
+      <h2>8. 記録を削除する</h2>
+      <ol><li>「履歴」タブを開きます。</li><li>削除したい記録の「削除」を押します。</li><li>確認ダイアログで削除を承認します。</li></ol>
+      <p><strong>削除した記録は元に戻せません。</strong>不安な場合は、先にJSONバックアップを書き出してください。</p>
+    </section>
+
+    <section class="readme-card">
+      <h2>9. グラフを見る</h2>
+      <ol><li>「グラフ」タブを開きます。</li><li>保存済みデータから折れ線グラフが表示されます。</li></ol>
+      <p>体重、体温、血圧、脈拍、体脂肪率、基礎代謝量、筋肉量を表示します。血圧は収縮期血圧と拡張期血圧を同じグラフに表示します。データが2件未満の項目は、グラフの代わりに案内メッセージが表示されます。</p>
+    </section>
+
+    <section class="readme-card">
+      <h2>10. バックアップファイルを保存する</h2>
+      <ol><li>「バックアップ」タブを開きます。</li><li>「バックアップファイルを保存」を押します。</li><li>表示された画面から端末に保存し、安全な場所で管理します。</li></ol>
+      <p>ファイル名の例: <code>biolog-mobile-backup-2026-06-26.json</code>。このバックアップは、記録を完全に復元するための正式なJSON形式です。</p>
+    </section>
+
+    <section class="readme-card">
+      <h2>11. バックアップファイルから復元する</h2>
+      <ol><li>「バックアップ」タブを開きます。</li><li>BioLog Mobileで作成したバックアップファイルを選択します。</li><li>「バックアップファイルから復元」を押します。</li></ol>
+      <p>同じ日付の記録がある場合は更新されます。読み込みに失敗した場合、途中まで取り込まれることはありません。</p>
+    </section>
+
+    <section class="readme-card">
+      <h2>12. CSVファイルから記録を取り込む</h2>
+      <ol><li>「バックアップ」タブを開きます。</li><li>CSVファイルを選択します。</li><li>「CSVファイルから記録を取り込む」を押します。</li></ol>
+      <p>CSVはUTF-8形式を推奨し、1行目はヘッダー行にしてください。</p>
+      <pre><code>date,weight,temperature,systolic_bp,diastolic_bp,pulse,memo
+2026-06-26,62.5,36.6,120,80,72,朝に測定
+2026-06-27,62.3,,,,,散歩した
+
+日付,体重,体温,収縮期血圧,拡張期血圧,脈拍,メモ
+2026-06-26,62.5,36.6,120,80,72,朝に測定</code></pre>
+      <p>既存BioLogの一覧タブから書き出したCSVも読み込めます。主な対応ヘッダーは <code>対象日</code>、<code>体重(kg)</code>、<code>体温(℃)</code>、<code>脈拍(bpm)</code>、<code>基礎代謝(kcal)</code>、<code>体脂肪率(%)</code>、<code>筋肉量(kg)</code>、<code>収縮期血圧</code>、<code>拡張期血圧</code>、<code>メモ</code>、<code>食事ログ</code>、<code>行動ログ</code>です。</p>
+      <p>既存BioLog CSVに含まれる <code>id</code>、<code>ユーザー</code>、<code>記録日時</code> は読み込めますが、Mobile側の保存対象にはしません。</p>
+      <h3>CSVの注意</h3>
+      <ul>
+        <li><code>date</code> または <code>日付</code> は必須です。既存BioLog CSVでは <code>対象日</code> を日付として扱います。</li>
+        <li>日付は <code>YYYY-MM-DD</code> 形式にしてください。</li>
+        <li>同じCSV内に同じ日付が複数ある場合、そのCSVは読み込めません。</li>
+        <li>既存BioLogのCSVは、Mobileへ取り込む前に1ユーザーに絞ることをおすすめします。複数ユーザーを含むCSVは、同じ日付が重複して拒否される場合があります。</li>
+        <li>未対応カラムがあるCSVは読み込めません。空の数値セルは保存対象にならず、空白だけのテキストセルは空扱いです。</li>
+        <li>CSVの空テキストセルでは、既存テキストは削除されません。</li>
+      </ul>
+    </section>
+
+    <section class="readme-card">
+      <h2>13. 健康記録をすべて削除する</h2>
+      <ol><li>「バックアップ」タブを開きます。</li><li>「健康記録をすべて削除」を押します。</li><li>確認ダイアログで承認します。</li></ol>
+      <p>端末内に保存された健康記録が削除されます。表示設定、同意記録、オフライン利用に必要なアプリ関連データは削除されません。削除前にバックアップファイルを保存することをおすすめします。</p>
+    </section>
+
+    <section class="readme-card">
+      <h2>14. ライトモード / ダークモードを切り替える</h2>
+      <p>画面右上の「ダーク」または「ライト」ボタンを押します。現在ライトモードの場合は「ダーク」、ダークモードの場合は「ライト」と表示されます。選んだテーマは端末のブラウザに保存されます。</p>
+    </section>
+
+    <section class="readme-card">
+      <h2>15. オフラインで使う</h2>
+      <p>一度オンラインで開いて準備が完了すると、PWAの画面はオフラインでも起動できます。記録は端末内に保存されます。ただし、初回表示や更新直後はオンライン接続が必要になることがあります。</p>
+    </section>
+
+    <section class="readme-card">
+      <h2>16. データを移行する</h2>
+      <ol><li>旧端末でバックアップファイルを保存します。</li><li>バックアップファイルを新端末へ移します。</li><li>新端末でBioLog Mobileを開きます。</li><li>「バックアップ」タブからバックアップファイルを使って復元します。</li></ol>
+      <p>完全な復元には、CSVではなくバックアップファイルを使うことをおすすめします。</p>
+    </section>
+
+    <section class="readme-card">
+      <h2>17. アプリを消す</h2>
+      <p>BioLog MobileはPWAのため、専用アンインストーラーはありません。ホーム画面のBioLog Mobileアイコンを削除し、必要に応じてブラウザのサイトデータを削除します。サイトデータを削除すると、端末内の記録も消えます。</p>
+    </section>
+
+    <section class="readme-card">
+      <h2>18. 困ったとき</h2>
+      <h3>保存できない</h3>
+      <ul><li>ブラウザのプライベートモードで開いていないか確認します。</li><li>端末の空き容量を確認します。</li><li>ページを再読み込みします。</li></ul>
+      <h3>ホーム画面に追加できない</h3>
+      <ul><li>AndroidはChrome、iPhoneはSafariで開いてください。</li><li>公開URLが正しいか確認してください。</li></ul>
+      <h3>読み込みに失敗する</h3>
+      <ul><li>JSONはBioLog Mobileで書き出したバックアップを使ってください。</li><li>CSVはUTF-8形式、1行目ヘッダーありにしてください。</li><li>日付形式が <code>YYYY-MM-DD</code> か確認してください。</li></ul>
+      <h3>画面が古いままに見える</h3>
+      <ul><li>端末をオンラインにし、画面右上の「アプリを更新」を押します。</li><li>更新中はアプリを閉じず、自動的に再読み込みされるまで待ちます。</li><li>それでも変わらない場合は、アプリを完全終了してホーム画面アイコンから起動し直します。</li><li>通常の更新では、サイトデータの削除やホーム画面アイコンの削除・再追加を行わないでください。これらの操作では記録が失われる場合があります。</li></ul>
+    </section>
+
+    <section class="readme-card">
+      <p>Markdown原本: <a href="./OPERATION_MANUAL.md">OPERATION_MANUAL.md</a></p>
+    </section>
+  </main>
+</body>
+</html>

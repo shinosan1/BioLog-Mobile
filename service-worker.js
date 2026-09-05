@@ -1,4 +1,4 @@
-const CACHE_NAME = "biolog-mobile-v2.13.6";
+const CACHE_NAME = "biolog-mobile-v2.13.7";
 const CACHE_URLS = [
   "./",
   "./index.html",
@@ -55,7 +55,11 @@ self.addEventListener("fetch", (event) => {
   }
 
   event.respondWith(
-    fetch(event.request, { cache: "no-store" }).catch(() => caches.match(event.request))
+    fetch(event.request, { cache: "no-store" }).then((response) => {
+      if (response.ok) {
+        return response;
+      }
+      return caches.match(event.request).then((cachedResponse) => cachedResponse || response);
+    }).catch(() => caches.match(event.request))
   );
 });
-

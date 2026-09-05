@@ -186,6 +186,25 @@
     ok("missing numeric retained", second.weight === 61.2);
     ok("date_user unique upsert", await countRecords() === 1);
 
+    await new Promise(function (resolve) {
+      setTimeout(resolve, 5);
+    });
+    var externallyUpdated = await window.BioLogDB.upsertRecord({
+      date: date,
+      memo: "updated elsewhere"
+    });
+    var staleUpdateRejected = false;
+    try {
+      await window.BioLogDB.upsertRecordIfUnchanged({
+        date: date,
+        memo: "stale update"
+      }, second);
+    } catch (error) {
+      staleUpdateRejected = error && error.code === "RECORD_CONFLICT";
+    }
+    ok("stale edit is rejected", staleUpdateRejected);
+    ok("stale edit does not overwrite newer record", (await window.BioLogDB.getRecordByDate(date)).memo === externallyUpdated.memo);
+
     var exportPayload = window.BioLogBackup.buildExportPayload(await window.BioLogDB.getAllRecords());
     ok("export app", exportPayload.app === "BioLog Mobile");
     ok("export version", exportPayload.version === 1);
@@ -278,7 +297,13 @@
     ok("bp tooltip systolic", bloodPressureChart.textContent.indexOf("収縮期: 120 mmHg") !== -1);
     ok("bp tooltip diastolic", bloodPressureChart.textContent.indexOf("拡張期: 80 mmHg") !== -1);
 
-    ok("bad json rejected", !window.BioLogBackup.parseImportJson("{").valid);
+    var badJsonRejected = false;
+    try {
+      window.BioLogBackup.parseImportJson("{");
+    } catch (error) {
+      badJsonRejected = true;
+    }
+    ok("bad json rejected", badJsonRejected);
     ok("records array required", !window.BioLogBackup.validateImportPayload({
       app: "BioLog Mobile",
       version: 1,
@@ -295,6 +320,18 @@
     ok("valid import", validation.valid);
     ok("normalize date_user", validation.records[0].date_user === "self::2026-06-27");
     ok("normalize ignores id", !("id" in validation.records[0]));
+
+    var emptyRecordImport = window.BioLogBackup.validateImportPayload({
+      app: "BioLog Mobile",
+      version: 1,
+      records: [{
+        date: "2026-06-23",
+        meal_detail: "",
+        activity_log: "",
+        memo: ""
+      }]
+    });
+    ok("empty record backup valid", emptyRecordImport.valid);
 
     var duplicate = {
       app: "BioLog Mobile",
@@ -335,6 +372,11 @@
     ok("atomic import result", importResult.imported === 1);
     ok("imported record exists", !!(await window.BioLogDB.getRecordByDate("2026-06-27")));
     ok("import upsert no duplicate date", await countRecords() === 2);
+
+    var emptyImportResult = await window.BioLogBackup.importRecords(emptyRecordImport.records);
+    var restoredEmptyRecord = await window.BioLogDB.getRecordByDate("2026-06-23");
+    ok("empty record backup restore result", emptyImportResult.imported === 1);
+    ok("empty record backup restored", !!restoredEmptyRecord && restoredEmptyRecord.memo === "" && !("weight" in restoredEmptyRecord));
 
     var simpleCsv = window.BioLogCsv.parseCsv("date,weight,memo\n2026-07-01,63.1,csv memo");
     ok("csv simple parse", simpleCsv.valid && simpleCsv.rows.length === 2);
@@ -436,7 +478,7 @@
     ok("csv import result", csvImportResult.imported === 2 && csvImportResult.added === 1 && csvImportResult.updated === 1);
     ok("csv import upsert value", existingAfterCsv.weight === 62.9);
     ok("csv import retains request_id", existingAfterCsv.request_id === existingBeforeCsv.request_id);
-    ok("csv import no duplicate date", await countRecords() === 3);
+    ok("csv import no duplicate date", await countRecords() === 4);
 
     var indexText = await fetch("./index.html").then(function (response) {
       return response.text();
@@ -515,6 +557,13 @@
     );
     ok("app update button is bound", appText.indexOf('els.appUpdateButton.addEventListener("click", handleAppUpdate)') !== -1);
     ok("app update warns about unsaved input", appText.indexOf("入力途中の内容は失われます") !== -1);
+    ok("pull refresh protects unsaved input", appText.indexOf("confirmDiscardUnsavedFormInput(\"更新すると\")") !== -1);
+    ok("service worker reload protects unsaved input", appText.indexOf("confirmDiscardUnsavedFormInput(\"新しい版を読み込むと\")") !== -1);
+    ok("today save checks the current date", appText.indexOf("var currentDate = window.BioLogDB.localDateYYYYMMDD()") !== -1);
+    ok("today save uses conditional upsert", appText.indexOf("dateChanged ? null : state.todayRecord") !== -1 && appText.indexOf("upsertRecordIfUnchanged") !== -1);
+    ok("history edit uses conditional upsert", appText.indexOf("upsertRecordIfUnchanged(payload, state.editingRecord)") !== -1);
+    ok("date edit uses conditional upsert", appText.indexOf("upsertRecordIfUnchanged(payload, state.dateEditRecord)") !== -1);
+    ok("service worker readiness is confirmed", appText.indexOf("navigator.serviceWorker.ready.then") !== -1 && appText.indexOf("registration && registration.active") !== -1);
     ok("app update bypasses service worker http cache", appText.indexOf('updateViaCache: "none"') !== -1);
     ok("app update reload is guarded", appText.indexOf("function reloadApplicationOnce") !== -1);
     ok("today form has an upper submit action", appText.indexOf('mode === "today"') !== -1 && appText.indexOf("form-actions form-actions-top") !== -1);
@@ -552,13 +601,59 @@
     ok("service worker caches privacy policy", serviceWorkerText.indexOf('"./PRIVACY_POLICY.html"') !== -1);
     ok("service worker caches terms", serviceWorkerText.indexOf('"./TERMS_OF_USE.html"') !== -1);
     ok("service worker caches SHA256 list", serviceWorkerText.indexOf('"./SHA256.html"') !== -1);
-    ok("service worker cache version updated", serviceWorkerText.indexOf("biolog-mobile-v2.13.6") !== -1);
+    ok("service worker cache version updated", serviceWorkerText.indexOf("biolog-mobile-v2.13.7") !== -1);
     ok("service worker cleanup filters the BioLog cache prefix", serviceWorkerText.indexOf('name.startsWith("biolog-mobile-")') !== -1);
     ok("service worker cleanup preserves the current and unrelated caches", serviceWorkerText.indexOf('names.filter((name) => name.startsWith("biolog-mobile-") && name !== CACHE_NAME)') !== -1);
     ok("service worker install bypasses http cache", serviceWorkerText.indexOf('{ cache: "reload" }') !== -1);
     ok("service worker online fetch bypasses http cache", serviceWorkerText.indexOf('{ cache: "no-store" }') !== -1);
+    ok("service worker falls back to cache for http errors", serviceWorkerText.indexOf("cachedResponse || response") !== -1);
     ok("service worker waits for skip waiting", serviceWorkerText.indexOf("event.waitUntil(self.skipWaiting())") !== -1);
     ok("service worker does not precache itself", serviceWorkerText.indexOf('"./service-worker.js"') === -1);
+
+    var todayDate = "2026-07-21";
+    var todayInitial = await window.BioLogDB.upsertRecord({
+      date: todayDate,
+      weight: 65.1,
+      memo: "today initial"
+    });
+    var todaySaved = await window.BioLogDB.upsertRecordIfUnchanged({
+      date: todayDate,
+      memo: "today saved"
+    }, todayInitial);
+    ok("today conditional save succeeds without conflict", todaySaved.memo === "today saved");
+
+    var todayExternal = await window.BioLogDB.upsertRecord({
+      date: todayDate,
+      memo: "today updated elsewhere"
+    });
+    var staleTodayRejected = false;
+    try {
+      await window.BioLogDB.upsertRecordIfUnchanged({
+        date: todayDate,
+        memo: "stale today save"
+      }, todaySaved);
+    } catch (error) {
+      staleTodayRejected = error && error.code === "RECORD_CONFLICT";
+    }
+    ok("stale today save is rejected", staleTodayRejected);
+    ok("stale today save preserves newer record", (await window.BioLogDB.getRecordByDate(todayDate)).memo === todayExternal.memo);
+
+    var rolloverDate = "2026-07-22";
+    var rolloverExisting = await window.BioLogDB.upsertRecord({
+      date: rolloverDate,
+      memo: "new day record"
+    });
+    var rolloverRejected = false;
+    try {
+      await window.BioLogDB.upsertRecordIfUnchanged({
+        date: rolloverDate,
+        memo: "stale prior-day form"
+      }, null);
+    } catch (error) {
+      rolloverRejected = error && error.code === "RECORD_CONFLICT";
+    }
+    ok("date rollover save is rejected when the new day exists", rolloverRejected);
+    ok("date rollover preserves the new day record", (await window.BioLogDB.getRecordByDate(rolloverDate)).memo === rolloverExisting.memo);
 
     await window.BioLogDB.deleteAllRecords();
     ok("delete all test db only", await countRecords() === 0);

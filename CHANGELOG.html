@@ -1,0 +1,108 @@
+<!doctype html>
+<html lang="ja">
+<head>
+  <meta charset="utf-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1">
+  <meta name="theme-color" content="#0f766e">
+  <meta name="description" content="BioLog Mobile の変更履歴">
+  <title>変更履歴 | BioLog Mobile</title>
+  <link rel="icon" href="./icon.svg" type="image/svg+xml">
+  <link rel="stylesheet" href="./styles.css">
+</head>
+<body class="readme-page">
+  <main class="readme-shell">
+    <header class="readme-hero">
+      <a class="readme-back" href="./README.html">利用ガイドへ戻る</a>
+      <div class="readme-hero-title">
+        <img src="./icon.svg" alt="" width="64" height="64">
+        <div>
+          <p class="eyebrow">CHANGELOG</p>
+          <h1>BioLog Mobile 変更履歴</h1>
+          <p class="readme-lead">CHANGELOG.md のHTML版です。Markdown原本は変更していません。</p>
+        </div>
+      </div>
+    </header>
+
+    <section class="readme-card">
+      <h2>Unreleased</h2>
+      <h3>追加</h3>
+      <ul>
+        <li>2026-07-14: 初回利用時と、利用規約・プライバシーポリシーの同意対象版改定時に、同意を求める画面を追加。</li>
+        <li>2026-07-14: ライト／ダーク切り替えの下に、最新版を明示的に読み込む「アプリを更新」ボタンを追加。</li>
+        <li>2026-07-14: 利用規約に対象年齢（18歳以上）の規定を追加。</li>
+        <li>2026-07-14: 利用規約の健康・医療に関する注意に、重要または緊急の健康・医療判断を本アプリの表示や記録だけに基づいて行わないよう求める一文を追加。</li>
+        <li>2026-07-14: プライバシーポリシーの問い合わせ案内に、病名・服薬内容等の詳細な健康情報を記載しないよう求める注意書きを追加。</li>
+        <li>2026-07-14: プライバシーポリシーに、同意しない状態での削除方法の案内を追加。</li>
+        <li>2026-07-14: 利用規約の禁止事項に、本人の同意または法令上の正当な権限なく第三者の健康情報その他の個人情報を入力・保存する行為を追加。</li>
+        <li>2026-07-14: 利用規約の「本アプリについて」に、公開版が医療・介護・福祉・雇用等の業務における第三者の健康情報管理を利用対象外とする旨の説明を追加。</li>
+      </ul>
+      <h3>変更</h3>
+      <ul>
+        <li>2026-07-17: 今日の主要数値がすべて未入力の場合は「今日の主要指標」を非表示にし、空の指標カードが画面を占有しないよう変更。</li>
+        <li>2026-07-17: 少数項目をすぐ保存できるよう、今日フォームの入力欄より前にも「今日の記録を保存」ボタンを追加。</li>
+        <li>2026-07-17: 上記の表示更新を確実に配信するため、Service Workerのキャッシュバージョンを <code>biolog-mobile-v2.13.5</code> に更新。</li>
+        <li>2026-07-17: バックアップ画面と案内文を「バックアップファイルを保存」「バックアップファイルから復元」を中心とした表現に変更し、CSV取り込みとの違いを明確化。</li>
+        <li>2026-07-17: 7項目のグラフを、文字サイズと操作領域を維持したまま低くコンパクトな表示に変更。</li>
+        <li>2026-07-17: ガイドの先頭に「PWAとは」を追加し、利用方法を先に示す平易な説明へ変更。</li>
+        <li>2026-07-17: 利用規約とプライバシーポリシーを、意味と同意対象版を変えずに平易化し、表示上の改定日・最終更新日を更新。</li>
+        <li>2026-07-17: 表示更新を確実に配信するため、Service Workerのキャッシュバージョンを <code>biolog-mobile-v2.13.4</code> に更新。</li>
+        <li>2026-07-14: バックアップ画面の保存状態から配信元URLの表示を削除し、保存場所が「この端末のブラウザ内」、健康記録の外部送信が「なし」であることを明示。</li>
+        <li>2026-07-14: 利用規約の免責条項を、運営者の軽過失による責任は通常かつ直接の損害に限定し、故意または重大な過失の場合はこの限定を適用しない構成に変更。</li>
+        <li>2026-07-14: プライバシーポリシーの収集表現を「本アプリの現行機能を通じて受領しない」という限定的な表現に修正し、問い合わせ情報・ホスティング事業者側の技術情報という例外を明記。</li>
+        <li>2026-07-14: プライバシーポリシーのホスティング事業者に関する記載を、GitHub Pagesによるアクセス時のIPアドレス記録・保存を明記する内容に更新。</li>
+        <li>2026-07-14: バックアップ機能の「全データ削除」を「健康記録をすべて削除」に改称し、削除対象外のデータ（表示設定・同意記録・Service Worker・オフラインキャッシュ・エクスポート済みファイル等）を明記。README.md / OPERATION_MANUAL.md / readme.html の表記も統一。</li>
+        <li>2026-07-14: README.md / OPERATION_MANUAL.md の全面免責文言を、利用規約への参照に簡略化。</li>
+        <li>2026-07-14: 利用規約の「提供内容の変更・中断・終了」から、事前案内の努力義務的な表現を中立化。</li>
+        <li>2026-07-14: 利用規約の「本アプリについて」の無料ベータ版提供の記載に「制定日時点では」を追加し、永続的な無料提供と誤解されないよう修正。</li>
+        <li>2026-07-14: README.mdの「使い始め方」を、GitHub Pages公開URLをスマホで開く一般利用手順に整理。従来のローカルサーバー起動手順は削除せず、「開発者向け：PCブラウザでローカル確認する場合」として分離。「スマホでホーム画面に追加する」「GitHub Pagesで公開する場合」の内容は変更なし。</li>
+        <li>2026-07-14: README.mdの記載を利用規約・プライバシーポリシーの確定文言に合わせて整理（サーバー不要の説明、バックアップ推奨時期、オフライン利用が同意後であること、外部送信がないこと、健康・医療判断の注意、アンインストール時の残存データ、バックアップ形式）。</li>
+        <li>2026-07-14: README.mdの保存領域、オフライン起動、ベータ版無料公開の時点表現を、実装・利用規約・プライバシーポリシーに合わせて整理。</li>
+        <li>2026-07-14: README.mdの「PWAについて」の保存場所表記、およびサイトデータ削除の説明を、ブラウザ版・ホーム画面版で保存領域が分かれる実態に合わせて整理。</li>
+      </ul>
+      <h3>修正</h3>
+      <ul>
+        <li>2026-07-16: 同意対象版更新後もService Workerが古い <code>consent.js</code> をオフラインキャッシュから返し、同意画面が繰り返し表示される可能性があった問題を修正。キャッシュバージョンを <code>biolog-mobile-v2.13.3</code> に更新し、現行文書版と旧キャッシュ版の同意判定に関する回帰テストを追加。</li>
+        <li>2026-07-14: 同意済みでホーム画面を読み込んだ際、同意画面が一瞬表示される問題を修正。初期表示を判定完了まで非表示とし、同意状態の確認タイミングをDOMContentLoadedへ変更。</li>
+      </ul>
+      <h3>安全性</h3>
+      <ul>
+        <li>2026-07-14: 同意前は健康記録用のIndexedDBを開かず、通常機能とService Workerの登録を開始しないよう変更。</li>
+        <li>2026-07-14: 同意記録は端末内のlocalStorageにだけ保存し、外部サーバーへ送信しない。</li>
+        <li>2026-07-14: 同意しない場合も既存の健康記録は削除せず、同意後は既存記録を維持して利用する。</li>
+        <li>2026-07-14: 利用規約・プライバシーポリシーの実質的な変更に伴い、文書バージョンおよび <code>consent.js</code> の <code>TERMS_VERSION</code> / <code>PRIVACY_VERSION</code> を <code>2026-07-14-2</code> に更新し、既存利用者に再同意を求めるようにした。</li>
+        <li>2026-07-14: <code>2026-07-14-2</code> 公開後に行った利用規約の実質的変更を反映し、<code>TERMS_VERSION</code> と利用規約の文書バージョンを <code>2026-07-14-3</code> へ更新。プライバシーポリシー側は変更がないため <code>PRIVACY_VERSION</code> は <code>2026-07-14-2</code> のまま維持。</li>
+      </ul>
+    </section>
+
+    <section class="readme-card">
+      <h2>0.1.0-test — 2026-06-26</h2>
+      <h3>追加</h3>
+      <ul>
+        <li>BioLog Mobile PWAの初期テスト版を追加。</li>
+        <li>Vanilla HTML / CSS / JavaScript構成で実装。</li>
+        <li>スマホのホーム画面追加に対応するmanifest / icon / service workerを追加。</li>
+        <li>IndexedDBによる端末内保存、1日1件の <code>date_user</code> upsert、今日の入力、履歴表示・編集・削除、当日サマリーを追加。</li>
+        <li>体重、体温、血圧、脈拍、体脂肪率、基礎代謝量のグラフを追加。</li>
+        <li>JSONバックアップ書き出し / 読み込み、UTF-8 CSV読み込み、ライト/ダーク切替を追加。</li>
+        <li><code>README.md</code> と <code>OPERATION_MANUAL.md</code> を追加。</li>
+      </ul>
+      <h3>安全性</h3>
+      <ul>
+        <li>既存BioLog Streamlit / API / SQLite版とは独立した <code>biolog_mobile</code> として作成。</li>
+        <li>Docker、サーバー、npm、外部CDN、外部ライブラリは不使用。</li>
+        <li>個人データを含むバックアップJSONは <code>.gitignore</code> 対象。</li>
+        <li>CSV importは全件検証後に取り込み、不正CSVは途中まで保存しない。</li>
+      </ul>
+      <h3>注記</h3>
+      <ul>
+        <li>この版はpublic公開でのテスト利用を想定した段階です。</li>
+        <li>正式運用前に、スマホ実機でホーム画面追加、オフライン起動、JSONバックアップ復元、CSV読み込みを確認してください。</li>
+      </ul>
+    </section>
+
+    <section class="readme-card">
+      <p>Markdown原本: <a href="./CHANGELOG.md">CHANGELOG.md</a></p>
+    </section>
+  </main>
+</body>
+</html>

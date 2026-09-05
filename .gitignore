@@ -10,6 +10,7 @@ desktop.ini
 *.tmp
 *.temp
 *.bak
+*.backup_pre_pull_*
 *.swp
 
 # Local backup exports

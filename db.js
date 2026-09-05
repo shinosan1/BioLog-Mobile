@@ -188,6 +188,60 @@
     });
   }
 
+  function recordsMatchVersion(existingRecord, expectedRecord) {
+    if (!expectedRecord) {
+      return !existingRecord;
+    }
+
+    return !!existingRecord &&
+      existingRecord.id === expectedRecord.id &&
+      existingRecord.updated_at === expectedRecord.updated_at &&
+      JSON.stringify(Object.keys(existingRecord).sort().map(function (key) {
+        return [key, existingRecord[key]];
+      })) === JSON.stringify(Object.keys(expectedRecord).sort().map(function (key) {
+        return [key, expectedRecord[key]];
+      }));
+  }
+
+  function makeConflictError() {
+    var error = new Error("記録が別の画面で更新されています。");
+    error.code = "RECORD_CONFLICT";
+    return error;
+  }
+
+  function upsertRecordIfUnchanged(input, expectedRecord) {
+    var source = input || {};
+    var userId = source.user_id || USER_ID;
+    var date = source.date || localDateYYYYMMDD();
+    var dateUser = makeDateUser(userId, date);
+
+    return openDB().then(function (db) {
+      var transaction = db.transaction(STORE_NAME, "readwrite");
+      var store = transaction.objectStore(STORE_NAME);
+      var index = store.index("date_user");
+
+      return requestToPromise(index.get(dateUser)).then(function (existingRecord) {
+        if (!recordsMatchVersion(existingRecord || null, expectedRecord || null)) {
+          throw makeConflictError();
+        }
+
+        var normalized = normalizeRecord(Object.assign({}, source, {
+          user_id: userId,
+          date: date,
+          date_user: dateUser
+        }), existingRecord || null);
+        return requestToPromise(store.put(normalized)).then(function (key) {
+          normalized.id = key;
+          return transactionDone(transaction).then(function () {
+            return normalized;
+          });
+        });
+      }).finally(function () {
+        db.close();
+      });
+    });
+  }
+
   function getAllRecords() {
     return openDB().then(function (db) {
       var transaction = db.transaction(STORE_NAME, "readonly");
@@ -339,6 +393,7 @@
     makeDateUser: makeDateUser,
     normalizeRecord: normalizeRecord,
     upsertRecord: upsertRecord,
+    upsertRecordIfUnchanged: upsertRecordIfUnchanged,
     getRecordByDate: getRecordByDate,
     getAllRecords: getAllRecords,
     deleteRecord: deleteRecord,

@@ -5,6 +5,7 @@
     todayDate: "",
     todayRecord: null,
     editingDate: "",
+    editingRecord: null,
     dateEditDate: "",
     dateEditRecord: null,
     dateEditLoaded: false,
@@ -51,6 +52,32 @@
 
     target.textContent = "";
     target.hidden = true;
+  }
+
+  function formSnapshot(form) {
+    return JSON.stringify(Array.prototype.map.call(form.elements, function (element) {
+      return element.name ? [element.name, element.value] : null;
+    }).filter(Boolean));
+  }
+
+  function rememberFormState(form) {
+    if (form) {
+      form.dataset.savedState = formSnapshot(form);
+    }
+  }
+
+  function hasUnsavedFormInput() {
+    return Array.prototype.some.call(document.querySelectorAll(".record-form"), function (form) {
+      return form.dataset.savedState && form.dataset.savedState !== formSnapshot(form);
+    });
+  }
+
+  function confirmDiscardUnsavedFormInput(action) {
+    if (!hasUnsavedFormInput()) {
+      return true;
+    }
+
+    return window.confirm(action + "入力途中の内容は失われます。続けますか？");
   }
 
   function normalizeTheme(theme) {
@@ -370,6 +397,10 @@
     }
 
     navigator.serviceWorker.addEventListener("controllerchange", function () {
+      if (!state.appUpdating && !confirmDiscardUnsavedFormInput("新しい版を読み込むと")) {
+        setStatus("入力途中の内容を保持するため、新しい版の読み込みを中止しました。");
+        return;
+      }
       reloadApplicationOnce();
     });
   }
@@ -556,6 +587,11 @@
 
   function performPullRefresh() {
     if (state.pullRefreshing) {
+      return;
+    }
+
+    if (!confirmDiscardUnsavedFormInput("更新すると")) {
+      setStatus("入力途中の内容を保持するため、更新を中止しました。");
       return;
     }
 
@@ -755,6 +791,7 @@
     return window.BioLogDB.getRecordByDate(state.todayDate).then(function (record) {
       state.todayRecord = record || null;
       window.BioLogForm.fillFormFromRecord(form, record || { date: state.todayDate });
+      rememberFormState(form);
       return renderTopTodaySummary();
     });
   }
@@ -766,21 +803,44 @@
     clearMessage(els.todayMessage);
 
     var payload = window.BioLogForm.buildPayloadFromForm(form);
-    payload.date = state.todayDate;
-    var mode = state.todayRecord ? "update" : "create";
-    var result = window.BioLogForm.validatePayload(payload, mode);
+    var currentDate = window.BioLogDB.localDateYYYYMMDD();
+    var dateChanged = currentDate !== state.todayDate;
 
-    if (!result.valid) {
-      showFormErrors(form, result.errors);
+    if (dateChanged && !window.confirm("日付が変わりました。入力内容を本日（" + currentDate + "）の記録として保存します。続けますか？")) {
+      showFormMessage(form, "入力内容は保持しています。保存先の日付を確認して、もう一度保存してください。", "error");
       return;
     }
 
-    window.BioLogDB.upsertRecord(payload).then(function (record) {
+    payload.date = currentDate;
+    window.BioLogDB.getRecordByDate(currentDate).then(function (currentRecord) {
+      var result = window.BioLogForm.validatePayload(payload, currentRecord ? "update" : "create");
+
+      if (!result.valid) {
+        showFormErrors(form, result.errors);
+        return null;
+      }
+
+      return window.BioLogDB.upsertRecordIfUnchanged(
+        payload,
+        dateChanged ? null : state.todayRecord
+      );
+    }).then(function (record) {
+      if (!record) {
+        return;
+      }
+
+      state.todayDate = currentDate;
       state.todayRecord = record;
+      els.todayDateLabel.textContent = currentDate;
       window.BioLogForm.fillFormFromRecord(form, record);
-      showFormMessage(form, "記録しました。", "success");
+      rememberFormState(form);
+      showFormMessage(form, dateChanged ? "日付が変わったため、本日の記録として保存しました。" : "記録しました。", "success");
       return Promise.all([renderTopTodaySummary(), refreshGraphsIfVisible(), renderStorageStatus()]);
-    }).catch(function () {
+    }).catch(function (error) {
+      if (error && error.code === "RECORD_CONFLICT") {
+        showFormMessage(form, "この記録は別の画面で変更されています。最新の内容を読み込んでから保存してください。", "error");
+        return;
+      }
       showFormMessage(form, "保存に失敗しました。", "error");
     });
   }
@@ -885,6 +945,7 @@
 
     if (form) {
       window.BioLogForm.fillFormFromRecord(form, {});
+      rememberFormState(form);
       clearFormErrors(form);
     }
 
@@ -912,6 +973,7 @@
       state.dateEditRecord = record || null;
       state.dateEditLoaded = true;
       window.BioLogForm.fillFormFromRecord(form, record || { date: date });
+      rememberFormState(form);
       setDateEditSubmitEnabled(true);
       showMessage(els.dateEditMessage, record ? "既存の記録を読み込みました。" : "新規登録できます。", "success");
     }).catch(function () {
@@ -946,12 +1008,17 @@
       return;
     }
 
-    window.BioLogDB.upsertRecord(payload).then(function (record) {
+    window.BioLogDB.upsertRecordIfUnchanged(payload, state.dateEditRecord).then(function (record) {
       state.dateEditRecord = record;
       window.BioLogForm.fillFormFromRecord(form, record);
+      rememberFormState(form);
       showFormMessage(form, "保存しました。", "success");
       return Promise.all([loadTodayRecord(), renderHistory(), refreshGraphsIfVisible(), renderStorageStatus()]);
-    }).catch(function () {
+    }).catch(function (error) {
+      if (error && error.code === "RECORD_CONFLICT") {
+        showFormMessage(form, "この記録は別の画面で変更されています。最新の内容を読み込んでから編集してください。", "error");
+        return;
+      }
       showFormMessage(form, "保存に失敗しました。", "error");
     });
   }
@@ -959,8 +1026,10 @@
   function startEdit(record) {
     var form = document.getElementById("edit-form");
     state.editingDate = record.date;
+    state.editingRecord = record;
     els.editFormHost.hidden = false;
     window.BioLogForm.fillFormFromRecord(form, record);
+    rememberFormState(form);
     clearFormErrors(form);
     clearMessage(els.historyMessage);
     form.scrollIntoView({ behavior: "smooth", block: "start" });
@@ -969,8 +1038,10 @@
   function cancelEdit() {
     var form = document.getElementById("edit-form");
     state.editingDate = "";
+    state.editingRecord = null;
     els.editFormHost.hidden = true;
     if (form) {
+      rememberFormState(form);
       clearFormErrors(form);
     }
     clearMessage(els.historyMessage);
@@ -991,13 +1062,19 @@
       return;
     }
 
-    window.BioLogDB.upsertRecord(payload).then(function (record) {
+    window.BioLogDB.upsertRecordIfUnchanged(payload, state.editingRecord).then(function (record) {
       state.editingDate = record.date;
+      state.editingRecord = record;
       window.BioLogForm.fillFormFromRecord(form, record);
+      rememberFormState(form);
       showFormMessage(form, "更新しました。", "success");
       clearMessage(els.historyMessage);
       return Promise.all([loadTodayRecord(), renderHistory(), refreshGraphsIfVisible(), renderStorageStatus()]);
-    }).catch(function () {
+    }).catch(function (error) {
+      if (error && error.code === "RECORD_CONFLICT") {
+        showFormMessage(form, "この記録は別の画面で変更されています。最新の内容を読み込んでから編集してください。", "error");
+        return;
+      }
       showFormMessage(form, "更新に失敗しました。", "error");
     });
   }
@@ -1121,7 +1198,14 @@
       updateViaCache: "none"
     })
       .then(function () {
-        setStatus("端末内に保存できます。オフライン起動の準備も完了しました。");
+        setStatus("端末内に保存できます。オフライン起動の準備中です。");
+        navigator.serviceWorker.ready.then(function (registration) {
+          if (registration && registration.active) {
+            setStatus("端末内に保存できます。オフライン起動の準備も完了しました。");
+          }
+        }).catch(function () {
+          setStatus("端末内に保存できます。");
+        });
       })
       .catch(function (error) {
         console.warn("Service worker registration failed.", error);
@@ -1157,10 +1241,12 @@
     var todayForm = createForm("today-form", "today", "今日の記録を保存");
     els.todayFormHost.appendChild(todayForm);
     todayForm.addEventListener("submit", handleTodaySubmit);
+    rememberFormState(todayForm);
 
     var dateEditFormElement = createForm("date-edit-form", "date-edit", "保存する");
     els.dateEditFormHost.appendChild(dateEditFormElement);
     dateEditFormElement.addEventListener("submit", handleDateEditSubmit);
+    rememberFormState(dateEditFormElement);
     setDateEditSubmitEnabled(false);
 
     var editTitle = createEl("div", "section-header");
@@ -1171,6 +1257,7 @@
     var editForm = createForm("edit-form", "edit", "更新する");
     els.editFormHost.appendChild(editForm);
     editForm.addEventListener("submit", handleEditSubmit);
+    rememberFormState(editForm);
     editForm.querySelector("[data-action='cancel-edit']").addEventListener("click", cancelEdit);
   }
 

@@ -140,16 +140,6 @@
     }
   }
 
-  function hasContent(record) {
-    var hasMeasurement = measurementFields().some(function (field) {
-      return hasOwn(record, field.name);
-    });
-    var hasText = TEXT_FIELDS.some(function (field) {
-      return typeof record[field] === "string" && record[field].trim() !== "";
-    });
-    return hasMeasurement || hasText;
-  }
-
   function validateRecord(record, index, seen, errors) {
     if (!isPlainObject(record)) {
       errors.push("records[" + index + "] はobjectである必要があります。");
@@ -199,9 +189,6 @@
       seen[dateUser] = true;
     }
 
-    if (!hasContent(record)) {
-      errors.push("records[" + index + "] は数値項目またはテキスト項目を1つ以上含む必要があります。");
-    }
   }
 
   function validateImportPayload(payload) {

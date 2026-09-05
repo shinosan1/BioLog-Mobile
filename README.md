@@ -39,8 +39,8 @@ App Store や Google Play からインストールするアプリではありま
 同意しない場合は BioLog Mobile を利用できませんが、端末内に既存の健康記録がある場合も、その記録は削除されません。
 同意後も既存の健康記録は維持され、そのまま利用できます。
 
-- [利用規約](./terms.html)
-- [プライバシーポリシー](./privacy.html)
+- [利用規約](./TERMS_OF_USE.html)
+- [プライバシーポリシー](./PRIVACY_POLICY.html)
 
 ## ライセンス
 
@@ -58,7 +58,7 @@ BioLog Mobile は日々の健康記録を補助するための個人向けツー
 本アプリの表示や記録だけに基づいて、服薬量の調整、受診の要否その他の重要または緊急の健康・医療判断を行わないでください。
 体調不良、異常値、健康上の不安がある場合は、医師などの専門家に相談してください。
 
-動作保証、データ保存の注意および責任範囲の詳細は、[利用規約](./terms.html) を確認してください。
+動作保証、データ保存の注意および責任範囲の詳細は、[利用規約](./TERMS_OF_USE.html) を確認してください。
 
 ## 主な機能
 
@@ -128,10 +128,10 @@ http://localhost:8787
 公開対象に含める主なファイル:
 
 - `index.html`
-- `readme.html`
-- `license.html`
-- `privacy.html`
-- `terms.html`
+- `README.html`
+- `LICENSE.html`
+- `PRIVACY_POLICY.html`
+- `TERMS_OF_USE.html`
 - `styles.css`
 - `consent.js`
 - `db.js`
