@@ -145,6 +145,29 @@
     return record;
   }
 
+  function normalizeRestoredRecord(input, existingRecord) {
+    var source = input || {};
+    var existing = existingRecord || null;
+    var record = {};
+    var userId = source.user_id || (existing && existing.user_id) || USER_ID;
+    var date = source.date || (existing && existing.date) || localDateYYYYMMDD();
+    var timestamp = nowTimestamp();
+
+    if (existing && hasOwn(existing, "id")) {
+      record.id = existing.id;
+    }
+
+    record.user_id = userId;
+    record.date = date;
+    record.date_user = makeDateUser(userId, date);
+    record.request_id = source.request_id || (existing && existing.request_id) || makeRequestId();
+    record.created_at = source.created_at || (existing && existing.created_at) || timestamp;
+    record.updated_at = source.updated_at || timestamp;
+
+    copyInputFields(record, source);
+    return record;
+  }
+
   function getRecordByDate(date, userId) {
     var resolvedUserId = userId || USER_ID;
     var dateUser = makeDateUser(resolvedUserId, date);
@@ -271,6 +294,31 @@
     });
   }
 
+  function deleteRecordIfUnchanged(expectedRecord) {
+    if (!expectedRecord || !hasOwn(expectedRecord, "id")) {
+      return Promise.reject(makeConflictError());
+    }
+
+    return openDB().then(function (db) {
+      var transaction = db.transaction(STORE_NAME, "readwrite");
+      var store = transaction.objectStore(STORE_NAME);
+
+      return requestToPromise(store.get(expectedRecord.id)).then(function (existingRecord) {
+        if (!recordsMatchVersion(existingRecord || null, expectedRecord)) {
+          throw makeConflictError();
+        }
+
+        return requestToPromise(store.delete(expectedRecord.id)).then(function () {
+          return transactionDone(transaction).then(function () {
+            return true;
+          });
+        });
+      }).finally(function () {
+        db.close();
+      });
+    });
+  }
+
   function deleteAllRecords() {
     return openDB().then(function (db) {
       var transaction = db.transaction(STORE_NAME, "readwrite");
@@ -286,7 +334,7 @@
     });
   }
 
-  function importRecordsAtomic(records) {
+  function writeRecordsAtomic(records, replaceExisting) {
     var importRecords = Array.isArray(records) ? records : [];
 
     if (!importRecords.length) {
@@ -337,9 +385,11 @@
 
           lookup.onsuccess = function () {
             var existing = lookup.result || null;
-            var normalized = normalizeRecord(source, existing);
+            var normalized = replaceExisting
+              ? normalizeRestoredRecord(source, existing)
+              : normalizeRecord(source, existing);
 
-            if (!existing && source.updated_at) {
+            if (!replaceExisting && !existing && source.updated_at) {
               normalized.updated_at = source.updated_at;
             }
 
@@ -387,6 +437,14 @@
       });
     });
   }
+
+  function importRecordsAtomic(records) {
+    return writeRecordsAtomic(records, false);
+  }
+
+  function restoreRecordsAtomic(records) {
+    return writeRecordsAtomic(records, true);
+  }
   window.BioLogDB = {
     openDB: openDB,
     localDateYYYYMMDD: localDateYYYYMMDD,
@@ -397,7 +455,9 @@
     getRecordByDate: getRecordByDate,
     getAllRecords: getAllRecords,
     deleteRecord: deleteRecord,
+    deleteRecordIfUnchanged: deleteRecordIfUnchanged,
     deleteAllRecords: deleteAllRecords,
-    importRecordsAtomic: importRecordsAtomic
+    importRecordsAtomic: importRecordsAtomic,
+    restoreRecordsAtomic: restoreRecordsAtomic
   };
 }());

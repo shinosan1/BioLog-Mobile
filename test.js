@@ -205,6 +205,20 @@
     ok("stale edit is rejected", staleUpdateRejected);
     ok("stale edit does not overwrite newer record", (await window.BioLogDB.getRecordByDate(date)).memo === externallyUpdated.memo);
 
+    var deleteDate = "2026-06-25";
+    var deleteInitial = await window.BioLogDB.upsertRecord({ date: deleteDate, memo: "delete initial" });
+    var deleteExternal = await window.BioLogDB.upsertRecord({ date: deleteDate, memo: "delete updated elsewhere" });
+    var staleDeleteRejected = false;
+    try {
+      await window.BioLogDB.deleteRecordIfUnchanged(deleteInitial);
+    } catch (error) {
+      staleDeleteRejected = error && error.code === "RECORD_CONFLICT";
+    }
+    ok("stale delete is rejected", staleDeleteRejected);
+    ok("stale delete preserves newer record", (await window.BioLogDB.getRecordByDate(deleteDate)).memo === deleteExternal.memo);
+    await window.BioLogDB.deleteRecordIfUnchanged(deleteExternal);
+    ok("fresh delete succeeds", !(await window.BioLogDB.getRecordByDate(deleteDate)));
+
     var exportPayload = window.BioLogBackup.buildExportPayload(await window.BioLogDB.getAllRecords());
     ok("export app", exportPayload.app === "BioLog Mobile");
     ok("export version", exportPayload.version === 1);
@@ -373,10 +387,17 @@
     ok("imported record exists", !!(await window.BioLogDB.getRecordByDate("2026-06-27")));
     ok("import upsert no duplicate date", await countRecords() === 2);
 
+    await window.BioLogDB.upsertRecord({
+      date: "2026-06-23",
+      weight: 80,
+      temperature: 37.1,
+      memo: "newer local values"
+    });
     var emptyImportResult = await window.BioLogBackup.importRecords(emptyRecordImport.records);
     var restoredEmptyRecord = await window.BioLogDB.getRecordByDate("2026-06-23");
     ok("empty record backup restore result", emptyImportResult.imported === 1);
     ok("empty record backup restored", !!restoredEmptyRecord && restoredEmptyRecord.memo === "" && !("weight" in restoredEmptyRecord));
+    ok("backup restore removes measurements absent from backup", !("temperature" in restoredEmptyRecord));
 
     var simpleCsv = window.BioLogCsv.parseCsv("date,weight,memo\n2026-07-01,63.1,csv memo");
     ok("csv simple parse", simpleCsv.valid && simpleCsv.rows.length === 2);
@@ -479,6 +500,8 @@
     ok("csv import upsert value", existingAfterCsv.weight === 62.9);
     ok("csv import retains request_id", existingAfterCsv.request_id === existingBeforeCsv.request_id);
     ok("csv import no duplicate date", await countRecords() === 4);
+    await window.BioLogCsv.importCsvText("date,memo\n2026-06-27,csv memo only");
+    ok("csv omitted numeric still retains existing value", (await window.BioLogDB.getRecordByDate("2026-06-27")).weight === 62.9);
 
     var indexText = await fetch("./index.html").then(function (response) {
       return response.text();
@@ -601,14 +624,56 @@
     ok("service worker caches privacy policy", serviceWorkerText.indexOf('"./PRIVACY_POLICY.html"') !== -1);
     ok("service worker caches terms", serviceWorkerText.indexOf('"./TERMS_OF_USE.html"') !== -1);
     ok("service worker caches SHA256 list", serviceWorkerText.indexOf('"./SHA256.html"') !== -1);
-    ok("service worker cache version updated", serviceWorkerText.indexOf("biolog-mobile-v2.13.7") !== -1);
-    ok("service worker cleanup filters the BioLog cache prefix", serviceWorkerText.indexOf('name.startsWith("biolog-mobile-")') !== -1);
-    ok("service worker cleanup preserves the current and unrelated caches", serviceWorkerText.indexOf('names.filter((name) => name.startsWith("biolog-mobile-") && name !== CACHE_NAME)') !== -1);
+    ok("service worker cache version updated", serviceWorkerText.indexOf('CACHE_VERSION = "v2.13.9"') !== -1);
+    ok("service worker cache prefix is scoped", serviceWorkerText.indexOf('APP_SCOPE_KEY = encodeURIComponent(APP_ROOT_URL.pathname)') !== -1);
+    ok("service worker cleanup filters only the current scope", serviceWorkerText.indexOf('name.startsWith(CACHE_PREFIX) && name !== CACHE_NAME') !== -1);
     ok("service worker install bypasses http cache", serviceWorkerText.indexOf('{ cache: "reload" }') !== -1);
-    ok("service worker online fetch bypasses http cache", serviceWorkerText.indexOf('{ cache: "no-store" }') !== -1);
+    ok("service worker network fallback bypasses http cache", serviceWorkerText.indexOf('{ cache: "no-store" }') !== -1);
+    ok("service worker serves precached assets from one cache version", serviceWorkerText.indexOf("PRECACHE_URLS.has(event.request.url)") !== -1);
+    ok("service worker app entry ignores query for offline fallback", serviceWorkerText.indexOf("isAppEntryNavigation(event.request, requestUrl)") !== -1 && serviceWorkerText.indexOf("cache.match(INDEX_URL)") !== -1);
     ok("service worker falls back to cache for http errors", serviceWorkerText.indexOf("cachedResponse || response") !== -1);
     ok("service worker waits for skip waiting", serviceWorkerText.indexOf("event.waitUntil(self.skipWaiting())") !== -1);
     ok("service worker does not precache itself", serviceWorkerText.indexOf('"./service-worker.js"') === -1);
+
+    var appText = await fetch("./app.js").then(function (response) {
+      return response.text();
+    });
+    ok("file import uses arrayBuffer", appText.indexOf("file.arrayBuffer()") !== -1);
+    ok("file import rejects invalid utf8", appText.indexOf('new TextDecoder("utf-8", { fatal: true })') !== -1);
+    ok("today refresh preserves dirty input", appText.indexOf("refreshTodayRecordPreservingInput") !== -1);
+    ok("today save preserves post-submit edits", appText.indexOf("changedAfterSubmit") !== -1);
+    ok("today save updates persisted baseline after post-submit edits", appText.indexOf("rememberSavedRecordState(form, record)") !== -1);
+
+    setFormValues({
+      date: "2026-07-20",
+      memo: ""
+    });
+    window.BioLogForm.rememberFormState(form);
+    form.elements.memo.value = "A";
+    var submittedTodayState = window.BioLogForm.formSnapshot(form);
+    var savedTodayRecord = await window.BioLogDB.upsertRecord({
+      date: "2026-07-20",
+      memo: "A"
+    });
+    form.elements.memo.value = "";
+    var changedDuringSave = window.BioLogForm.formSnapshot(form) !== submittedTodayState;
+    if (changedDuringSave) {
+      window.BioLogForm.rememberRecordState(form, savedTodayRecord);
+    }
+    ok("post-submit revert remains unsaved", window.BioLogForm.hasUnsavedChanges(form));
+    ok("post-submit revert keeps current empty input", form.elements.memo.value === "");
+
+    await window.BioLogDB.upsertRecord({
+      date: "2026-07-19",
+      memo: "other date"
+    });
+    var currentTodayRecord = await window.BioLogDB.getRecordByDate("2026-07-20");
+    if (!window.BioLogForm.hasUnsavedChanges(form)) {
+      window.BioLogForm.fillFormFromRecord(form, currentTodayRecord);
+      window.BioLogForm.rememberFormState(form);
+    }
+    ok("other-date save preserves dirty today input", form.elements.memo.value === "");
+    ok("other-date save leaves today input unsaved", window.BioLogForm.hasUnsavedChanges(form));
 
     var todayDate = "2026-07-21";
     var todayInitial = await window.BioLogDB.upsertRecord({

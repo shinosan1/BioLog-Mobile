@@ -142,6 +142,46 @@
     });
   }
 
+  function formSnapshot(formElement) {
+    return JSON.stringify(Array.prototype.map.call(formElement.elements, function (element) {
+      return element.name ? [element.name, element.value] : null;
+    }).filter(Boolean));
+  }
+
+  function recordSnapshot(formElement, record) {
+    var source = record || {};
+
+    return JSON.stringify(Array.prototype.map.call(formElement.elements, function (element) {
+      var value;
+      if (!element.name) {
+        return null;
+      }
+
+      value = hasOwn(source, element.name) ? source[element.name] : "";
+      if (value === undefined || value === null) {
+        value = "";
+      }
+      return [element.name, String(value)];
+    }).filter(Boolean));
+  }
+
+  function rememberFormState(formElement) {
+    if (formElement) {
+      formElement.dataset.savedState = formSnapshot(formElement);
+    }
+  }
+
+  function rememberRecordState(formElement, record) {
+    if (formElement) {
+      formElement.dataset.savedState = recordSnapshot(formElement, record);
+    }
+  }
+
+  function hasUnsavedChanges(formElement) {
+    return !!(formElement && formElement.dataset.savedState &&
+      formElement.dataset.savedState !== formSnapshot(formElement));
+  }
+
   function clearMeasurementFields(formElement) {
     MEASUREMENT_FIELDS.forEach(function (field) {
       var input = formElement.elements[field.name];
@@ -208,6 +248,11 @@
     validatePayload: validatePayload,
     buildPayloadFromForm: buildPayloadFromForm,
     fillFormFromRecord: fillFormFromRecord,
+    formSnapshot: formSnapshot,
+    recordSnapshot: recordSnapshot,
+    rememberFormState: rememberFormState,
+    rememberRecordState: rememberRecordState,
+    hasUnsavedChanges: hasUnsavedChanges,
     clearMeasurementFields: clearMeasurementFields,
     formatDisplayDateTime: formatDisplayDateTime,
     formatRecordSummary: formatRecordSummary

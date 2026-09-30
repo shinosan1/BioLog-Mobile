@@ -55,20 +55,24 @@
   }
 
   function formSnapshot(form) {
-    return JSON.stringify(Array.prototype.map.call(form.elements, function (element) {
-      return element.name ? [element.name, element.value] : null;
-    }).filter(Boolean));
+    return window.BioLogForm.formSnapshot(form);
   }
 
   function rememberFormState(form) {
-    if (form) {
-      form.dataset.savedState = formSnapshot(form);
-    }
+    window.BioLogForm.rememberFormState(form);
+  }
+
+  function rememberSavedRecordState(form, record) {
+    window.BioLogForm.rememberRecordState(form, record);
+  }
+
+  function hasUnsavedFormChanges(form) {
+    return window.BioLogForm.hasUnsavedChanges(form);
   }
 
   function hasUnsavedFormInput() {
     return Array.prototype.some.call(document.querySelectorAll(".record-form"), function (form) {
-      return form.dataset.savedState && form.dataset.savedState !== formSnapshot(form);
+      return hasUnsavedFormChanges(form);
     });
   }
 
@@ -796,6 +800,16 @@
     });
   }
 
+  function refreshTodayRecordPreservingInput() {
+    var form = document.getElementById("today-form");
+
+    if (hasUnsavedFormChanges(form)) {
+      return renderTopTodaySummary();
+    }
+
+    return loadTodayRecord();
+  }
+
   function handleTodaySubmit(event) {
     event.preventDefault();
     var form = event.currentTarget;
@@ -803,6 +817,7 @@
     clearMessage(els.todayMessage);
 
     var payload = window.BioLogForm.buildPayloadFromForm(form);
+    var submittedFormState = formSnapshot(form);
     var currentDate = window.BioLogDB.localDateYYYYMMDD();
     var dateChanged = currentDate !== state.todayDate;
 
@@ -829,12 +844,26 @@
         return;
       }
 
+      var changedAfterSubmit = formSnapshot(form) !== submittedFormState;
       state.todayDate = currentDate;
       state.todayRecord = record;
       els.todayDateLabel.textContent = currentDate;
-      window.BioLogForm.fillFormFromRecord(form, record);
-      rememberFormState(form);
-      showFormMessage(form, dateChanged ? "日付が変わったため、本日の記録として保存しました。" : "記録しました。", "success");
+
+      if (!changedAfterSubmit) {
+        window.BioLogForm.fillFormFromRecord(form, record);
+        rememberFormState(form);
+      } else {
+        setFormDate(form, currentDate);
+        rememberSavedRecordState(form, record);
+      }
+
+      showFormMessage(
+        form,
+        changedAfterSubmit
+          ? "記録しました。保存後に変更した入力内容は未保存のまま保持しています。"
+          : (dateChanged ? "日付が変わったため、本日の記録として保存しました。" : "記録しました。"),
+        "success"
+      );
       return Promise.all([renderTopTodaySummary(), refreshGraphsIfVisible(), renderStorageStatus()]);
     }).catch(function (error) {
       if (error && error.code === "RECORD_CONFLICT") {
@@ -1013,7 +1042,7 @@
       window.BioLogForm.fillFormFromRecord(form, record);
       rememberFormState(form);
       showFormMessage(form, "保存しました。", "success");
-      return Promise.all([loadTodayRecord(), renderHistory(), refreshGraphsIfVisible(), renderStorageStatus()]);
+      return Promise.all([refreshTodayRecordPreservingInput(), renderHistory(), refreshGraphsIfVisible(), renderStorageStatus()]);
     }).catch(function (error) {
       if (error && error.code === "RECORD_CONFLICT") {
         showFormMessage(form, "この記録は別の画面で変更されています。最新の内容を読み込んでから編集してください。", "error");
@@ -1069,7 +1098,7 @@
       rememberFormState(form);
       showFormMessage(form, "更新しました。", "success");
       clearMessage(els.historyMessage);
-      return Promise.all([loadTodayRecord(), renderHistory(), refreshGraphsIfVisible(), renderStorageStatus()]);
+      return Promise.all([refreshTodayRecordPreservingInput(), renderHistory(), refreshGraphsIfVisible(), renderStorageStatus()]);
     }).catch(function (error) {
       if (error && error.code === "RECORD_CONFLICT") {
         showFormMessage(form, "この記録は別の画面で変更されています。最新の内容を読み込んでから編集してください。", "error");
@@ -1084,13 +1113,17 @@
       return;
     }
 
-    window.BioLogDB.deleteRecord(record.id).then(function () {
+    window.BioLogDB.deleteRecordIfUnchanged(record).then(function () {
       if (state.dateEditDate === record.date) {
         resetDateEditForm();
       }
       showMessage(els.historyMessage, "削除しました。", "success");
-      return Promise.all([loadTodayRecord(), renderHistory(), refreshGraphsIfVisible(), renderStorageStatus()]);
-    }).catch(function () {
+      return Promise.all([refreshTodayRecordPreservingInput(), renderHistory(), refreshGraphsIfVisible(), renderStorageStatus()]);
+    }).catch(function (error) {
+      if (error && error.code === "RECORD_CONFLICT") {
+        showMessage(els.historyMessage, "この記録は別の画面で変更されています。履歴を更新してから削除してください。", "error");
+        return;
+      }
       showMessage(els.historyMessage, "削除に失敗しました。", "error");
     });
   }
@@ -1116,6 +1149,20 @@
     els.csvButton.disabled = !els.csvFile.files.length;
   }
 
+  function readFileAsUtf8(file) {
+    if (!file || typeof file.arrayBuffer !== "function" || typeof TextDecoder === "undefined") {
+      return Promise.reject(new Error("このブラウザではUTF-8ファイルの読み取りに対応していません。"));
+    }
+
+    return file.arrayBuffer().then(function (buffer) {
+      try {
+        return new TextDecoder("utf-8", { fatal: true }).decode(buffer);
+      } catch (error) {
+        throw new Error("ファイルをUTF-8として読み取れませんでした。UTF-8形式のファイルを選択してください。");
+      }
+    });
+  }
+
   function handleImport() {
     clearMessage(els.backupMessage);
 
@@ -1125,7 +1172,7 @@
     }
 
     var file = els.importFile.files[0];
-    file.text().then(function (text) {
+    readFileAsUtf8(file).then(function (text) {
       var payload = window.BioLogBackup.parseImportJson(text);
       var validation = window.BioLogBackup.validateImportPayload(payload);
 
@@ -1138,7 +1185,7 @@
       showMessage(els.backupMessage, result.imported + "件を復元しました。追加: " + result.added + " / 更新: " + result.updated, "success");
       els.importFile.value = "";
       els.importButton.disabled = true;
-      return Promise.all([loadTodayRecord(), renderHistory(), refreshGraphsIfVisible(), renderStorageStatus()]);
+      return Promise.all([refreshTodayRecordPreservingInput(), renderHistory(), refreshGraphsIfVisible(), renderStorageStatus()]);
     }).catch(function (error) {
       showMessage(els.backupMessage, error.message || "バックアップファイルから復元できませんでした。", "error");
     });
@@ -1152,13 +1199,13 @@
       return;
     }
 
-    els.csvFile.files[0].text().then(function (text) {
+    readFileAsUtf8(els.csvFile.files[0]).then(function (text) {
       return window.BioLogCsv.importCsvText(text);
     }).then(function (result) {
       showMessage(els.backupMessage, "CSVファイルから" + result.imported + "件を取り込みました。追加: " + result.added + " / 更新: " + result.updated, "success");
       els.csvFile.value = "";
       els.csvButton.disabled = true;
-      return Promise.all([loadTodayRecord(), renderHistory(), refreshGraphsIfVisible(), renderStorageStatus()]);
+      return Promise.all([refreshTodayRecordPreservingInput(), renderHistory(), refreshGraphsIfVisible(), renderStorageStatus()]);
     }).catch(function (error) {
       showMessage(els.backupMessage, error.message || "CSVファイルから記録を取り込めませんでした。", "error");
     });

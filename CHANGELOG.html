@@ -6,7 +6,7 @@
   <meta name="theme-color" content="#0f766e">
   <meta name="description" content="BioLog Mobile の変更履歴">
   <title>変更履歴 | BioLog Mobile</title>
-  <link rel="icon" href="./icon.svg" type="image/svg+xml">
+  <link rel="icon" href="./icons/icon.svg" type="image/svg+xml">
   <link rel="stylesheet" href="./styles.css">
 </head>
 <body class="readme-page">
@@ -14,7 +14,7 @@
     <header class="readme-hero">
       <a class="readme-back" href="./README.html">利用ガイドへ戻る</a>
       <div class="readme-hero-title">
-        <img src="./icon.svg" alt="" width="64" height="64">
+        <img src="./icons/icon.svg" alt="" width="64" height="64">
         <div>
           <p class="eyebrow">CHANGELOG</p>
           <h1>BioLog Mobile 変更履歴</h1>
@@ -61,6 +61,14 @@
       </ul>
       <h3>修正</h3>
       <ul>
+        <li>2026-09-30: 今日の記録を保存中に入力を保存前の値へ戻した場合でも、実際に保存された記録を未保存判定の基準に更新し、その入力を未保存変更として保持するよう修正。別日の保存後も今日フォームの入力を保持する回帰テストを追加。</li>
+        <li>2026-09-30: 上記修正を確実に配信するため、Service Workerのキャッシュバージョンを <code>biolog-mobile-v2.13.9</code> に更新。</li>
+        <li>2026-09-30: 履歴削除にも更新競合チェックを追加し、別タブで更新済みの記録を古い履歴カードから削除できないよう修正。</li>
+        <li>2026-09-30: 別日の保存や履歴更新後に「今日」フォームの未保存入力を上書きしないよう修正し、保存処理中に追加入力した内容も未保存のまま保持するよう変更。</li>
+        <li>2026-09-30: JSONバックアップ復元時は同日の既存記録をバックアップ内容に合わせて置き換え、バックアップに存在しない測定値が残らないよう修正。CSV取り込みの既存値保持仕様は変更なし。</li>
+        <li>2026-09-30: JSONバックアップとCSVの読み込みを厳密なUTF-8デコードに変更し、不正なUTF-8を保存前に拒否するよう修正。</li>
+        <li>2026-09-30: Service Workerを版単位のプリキャッシュ優先配信に変更し、通信状態による新旧資産の混在を防止。配置スコープごとのキャッシュ名に分離し、クエリ付きのアプリ入口でもオフライン起動できるよう修正。キャッシュ版を <code>v2.13.8</code> に更新。</li>
+        <li>2026-09-30: 補助文書3ページのアイコン参照を実在する <code>./icons/icon.svg</code> に修正し、操作マニュアルの主要指標サマリー説明を現行7項目・非表示条件に合わせて更新。</li>
         <li>2026-07-16: 同意対象版更新後もService Workerが古い <code>consent.js</code> をオフラインキャッシュから返し、同意画面が繰り返し表示される可能性があった問題を修正。キャッシュバージョンを <code>biolog-mobile-v2.13.3</code> に更新し、現行文書版と旧キャッシュ版の同意判定に関する回帰テストを追加。</li>
         <li>2026-07-14: 同意済みでホーム画面を読み込んだ際、同意画面が一瞬表示される問題を修正。初期表示を判定完了まで非表示とし、同意状態の確認タイミングをDOMContentLoadedへ変更。</li>
       </ul>

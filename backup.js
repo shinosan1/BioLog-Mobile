@@ -251,7 +251,7 @@
   }
 
   function importRecords(records) {
-    return window.BioLogDB.importRecordsAtomic(records);
+    return window.BioLogDB.restoreRecordsAtomic(records);
   }
 
   window.BioLogBackup = {
