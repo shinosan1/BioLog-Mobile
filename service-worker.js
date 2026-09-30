@@ -1,4 +1,4 @@
-const CACHE_VERSION = "v2.13.9";
+const CACHE_VERSION = "v2.13.11";
 const APP_ROOT_URL = new URL("./", self.location.href);
 const APP_SCOPE_KEY = encodeURIComponent(APP_ROOT_URL.pathname);
 const CACHE_PREFIX = "biolog-mobile-" + APP_SCOPE_KEY + "-";

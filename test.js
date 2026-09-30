@@ -624,7 +624,7 @@
     ok("service worker caches privacy policy", serviceWorkerText.indexOf('"./PRIVACY_POLICY.html"') !== -1);
     ok("service worker caches terms", serviceWorkerText.indexOf('"./TERMS_OF_USE.html"') !== -1);
     ok("service worker caches SHA256 list", serviceWorkerText.indexOf('"./SHA256.html"') !== -1);
-    ok("service worker cache version updated", serviceWorkerText.indexOf('CACHE_VERSION = "v2.13.9"') !== -1);
+    ok("service worker cache version updated", serviceWorkerText.indexOf('CACHE_VERSION = "v2.13.11"') !== -1);
     ok("service worker cache prefix is scoped", serviceWorkerText.indexOf('APP_SCOPE_KEY = encodeURIComponent(APP_ROOT_URL.pathname)') !== -1);
     ok("service worker cleanup filters only the current scope", serviceWorkerText.indexOf('name.startsWith(CACHE_PREFIX) && name !== CACHE_NAME') !== -1);
     ok("service worker install bypasses http cache", serviceWorkerText.indexOf('{ cache: "reload" }') !== -1);
