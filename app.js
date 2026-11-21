@@ -11,6 +11,7 @@
     dateEditLoaded: false,
     pullRefreshing: false,
     appUpdating: false,
+    appReloadPending: false,
     appReloading: false,
     appStarted: false
   };
@@ -401,66 +402,28 @@
       return;
     }
 
+    var previousController = navigator.serviceWorker.controller;
     navigator.serviceWorker.addEventListener("controllerchange", function () {
-      if (!state.appUpdating && !confirmDiscardUnsavedFormInput("新しい版を読み込むと")) {
+      var controller = navigator.serviceWorker.controller;
+      if (!controller || controller === previousController) {
+        return;
+      }
+
+      var hadController = !!previousController;
+      previousController = controller;
+      if (!hadController) {
+        return;
+      }
+
+      state.appReloadPending = true;
+      if (state.appUpdating || state.pullRefreshing) {
+        return;
+      }
+      if (!confirmDiscardUnsavedFormInput("新しい版を読み込むと")) {
         setStatus("入力途中の内容を保持するため、新しい版の読み込みを中止しました。");
         return;
       }
       reloadApplicationOnce();
-    });
-  }
-
-  function skipWaiting(worker) {
-    if (worker && worker.postMessage) {
-      worker.postMessage({ type: "SKIP_WAITING" });
-      return true;
-    }
-    return false;
-  }
-
-  function waitForInstallingWorker(worker) {
-    return new Promise(function (resolve, reject) {
-      var settled = false;
-      var timeout = window.setTimeout(function () {
-        if (!settled) {
-          settled = true;
-          reject(new Error("Service Workerの更新がタイムアウトしました。"));
-        }
-      }, 10000);
-
-      function finish(value) {
-        if (settled) {
-          return;
-        }
-        settled = true;
-        window.clearTimeout(timeout);
-        resolve(value);
-      }
-
-      function fail(error) {
-        if (settled) {
-          return;
-        }
-        settled = true;
-        window.clearTimeout(timeout);
-        reject(error);
-      }
-
-      function inspectState() {
-        if (worker.state === "installed") {
-          finish(skipWaiting(worker));
-        } else if (worker.state === "activating" || worker.state === "activated") {
-          finish(true);
-        } else if (worker.state === "redundant") {
-          fail(new Error("Service Workerの更新を適用できませんでした。"));
-        }
-      }
-
-      worker.addEventListener("statechange", function () {
-        inspectState();
-      });
-
-      inspectState();
     });
   }
 
@@ -470,40 +433,82 @@
     }
 
     return navigator.serviceWorker.getRegistration("./").then(function (registration) {
-      var updateFoundWorker = null;
-
       if (!registration) {
         return false;
       }
 
-      if (registration.waiting) {
-        return skipWaiting(registration.waiting);
-      }
-      if (registration.installing) {
-        return waitForInstallingWorker(registration.installing);
-      }
-
-      function handleUpdateFound() {
-        updateFoundWorker = registration.installing;
-      }
-
-      registration.addEventListener("updatefound", handleUpdateFound);
-
-      return registration.update().then(function () {
-        registration.removeEventListener("updatefound", handleUpdateFound);
-        if (registration.waiting) {
-          return skipWaiting(registration.waiting);
-        }
-        if (registration.installing) {
-          return waitForInstallingWorker(registration.installing);
-        }
-        if (updateFoundWorker) {
-          return waitForInstallingWorker(updateFoundWorker);
-        }
+      var previousWorker = navigator.serviceWorker.controller || registration.active;
+      if (!previousWorker) {
         return false;
-      }, function (error) {
-        registration.removeEventListener("updatefound", handleUpdateFound);
-        throw error;
+      }
+
+      return new Promise(function (resolve, reject) {
+        var worker = null;
+        var activationRequested = false;
+        var settled = false;
+        var timeout = window.setTimeout(function () {
+          finish(new Error("Service Workerの更新がタイムアウトしました。"));
+        }, 30000);
+        var poll = window.setInterval(inspectUpdate, 250);
+
+        function finish(error, updated) {
+          if (settled) {
+            return;
+          }
+          settled = true;
+          window.clearTimeout(timeout);
+          window.clearInterval(poll);
+          registration.removeEventListener("updatefound", inspectUpdate);
+          if (worker) {
+            worker.removeEventListener("statechange", inspectUpdate);
+          }
+          if (error) {
+            reject(error);
+          } else {
+            resolve(updated);
+          }
+        }
+
+        function inspectUpdate() {
+          if (settled) {
+            return;
+          }
+          if (!worker) {
+            var active = registration.active;
+            worker = registration.waiting || registration.installing;
+            if (!worker && (state.appReloadPending || active !== previousWorker)) {
+              worker = active;
+            }
+            if (!worker) {
+              return;
+            }
+            worker.addEventListener("statechange", inspectUpdate);
+          }
+
+          if (worker.state === "activated" && registration.active === worker) {
+            finish(null, true);
+          } else if (worker.state === "redundant") {
+            finish(new Error("Service Workerの更新を適用できませんでした。"));
+          } else if (worker.state === "installed" && !activationRequested) {
+            activationRequested = true;
+            try {
+              worker.postMessage({ type: "SKIP_WAITING" });
+            } catch (error) {
+              finish(error);
+            }
+          }
+        }
+
+        registration.addEventListener("updatefound", inspectUpdate);
+        inspectUpdate();
+        if (!worker) {
+          registration.update().then(function () {
+            inspectUpdate();
+            if (!worker) {
+              finish(null, false);
+            }
+          }, finish);
+        }
       });
     });
   }
@@ -530,11 +535,11 @@
   }
 
   function handleAppUpdate() {
-    if (state.appUpdating || state.appReloading) {
+    if (state.appUpdating || state.appReloading || state.pullRefreshing) {
       return;
     }
 
-    if (!window.confirm("最新版を確認すると画面を再読み込みします。入力途中の内容は失われます。続けますか？")) {
+    if (!window.confirm("新しい版がある場合は画面を再読み込みします。入力途中の内容は失われます。確認を続けますか？")) {
       return;
     }
 
@@ -547,19 +552,25 @@
     setAppUpdateButtonBusy(true);
     setStatus("最新版を確認しています...");
 
-    checkForServiceWorkerUpdate().then(function (workerUpdateStarted) {
-      if (workerUpdateStarted) {
-        setStatus("新しい版を適用しています...");
-        window.setTimeout(reloadApplicationOnce, 10000);
+    checkForServiceWorkerUpdate().then(function (updated) {
+      if (updated) {
+        reloadApplicationOnce();
         return;
       }
 
-      reloadApplicationOnce();
+      // 日付が変わった場合も、保存済みの表示を読み直す。
+      var refresh = hasUnsavedFormInput() ? Promise.resolve() : refreshVisibleContent();
+      return refresh.then(function () {
+        setStatus("新しい版は見つかりませんでした。");
+      });
     }).catch(function (error) {
       console.warn("Application update failed.", error);
-      state.appUpdating = false;
-      setAppUpdateButtonBusy(false);
       setStatus("更新に失敗しました。通信状態を確認して、もう一度お試しください。");
+    }).finally(function () {
+      if (!state.appReloading) {
+        state.appUpdating = false;
+        setAppUpdateButtonBusy(false);
+      }
     });
   }
 
@@ -591,7 +602,7 @@
   }
 
   function performPullRefresh() {
-    if (state.pullRefreshing) {
+    if (state.pullRefreshing || state.appUpdating || state.appReloading) {
       return;
     }
 
@@ -606,8 +617,10 @@
 
     Promise.all([checkForServiceWorkerUpdate(), refreshVisibleContent()])
       .then(function (results) {
-        if (!results[0]) {
-          setStatus("更新しました。");
+        if (results[0]) {
+          reloadApplicationOnce();
+        } else {
+          setStatus("表示を更新しました。");
         }
       })
       .catch(function () {
