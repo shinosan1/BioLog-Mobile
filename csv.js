@@ -422,15 +422,16 @@
     };
   }
 
-  function importCsvText(text) {
+  function validateCsvText(text) {
     var parsed = parseCsv(text);
-    var validation;
-
     if (!parsed.valid) {
-      return Promise.reject(new Error(parsed.errors.join("\n")));
+      return { valid: false, errors: parsed.errors, records: [] };
     }
+    return validateCsvRows(parsed.rows);
+  }
 
-    validation = validateCsvRows(parsed.rows);
+  function importCsvText(text) {
+    var validation = validateCsvText(text);
     if (!validation.valid) {
       return Promise.reject(new Error(validation.errors.join("\n")));
     }
@@ -442,6 +443,7 @@
     parseCsv: parseCsv,
     mapCsvHeaders: mapCsvHeaders,
     validateCsvRows: validateCsvRows,
+    validateCsvText: validateCsvText,
     normalizeCsvRecord: normalizeCsvRecord,
     importCsvText: importCsvText
   };

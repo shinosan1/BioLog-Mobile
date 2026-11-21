@@ -250,8 +250,8 @@
     return normalized;
   }
 
-  function importRecords(records) {
-    return window.BioLogDB.restoreRecordsAtomic(records);
+  function importRecords(records, expectedRecords) {
+    return window.BioLogDB.restoreRecordsAtomic(records, expectedRecords);
   }
 
   window.BioLogBackup = {

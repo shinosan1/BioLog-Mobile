@@ -71,7 +71,7 @@
         <p><strong>2. 入力と検証:</strong> <code>BioLogForm.buildPayloadFromForm()</code>が値を取り出し、<code>validatePayload()</code>が測定範囲と必要な入力を確認します。</p>
         <p><strong>3. 保存:</strong> <code>BioLogDB.upsertRecord()</code>が、利用者識別子<code>self</code>と日付の組み合わせを基準に、1日1件の記録を追加または更新します。</p>
         <p><strong>4. 表示:</strong> 履歴は<code>getAllRecords()</code>、グラフは<code>BioLogCharts.renderCharts()</code>で再描画します。入力済みテキストはDOMのテキストとして表示します。</p>
-        <p><strong>5. バックアップ:</strong> JSONは<code>buildExportPayload()</code>で書き出し、復元時は形式・日付・項目・重複を検証してから<code>importRecordsAtomic()</code>で反映します。</p>
+        <p><strong>5. バックアップ:</strong> JSONは<code>buildExportPayload()</code>で書き出し、復元時は形式・日付・項目・重複を検証してから<code>restoreRecordsAtomic()</code>で反映します。CSVの取り込みには<code>importRecordsAtomic()</code>を使います。未リリース版では、どちらも上書き確認時に参照した対象記録と書き込み時の記録を照合し、変更があれば処理全体を中止します。</p>
       </div>
     </section>
 

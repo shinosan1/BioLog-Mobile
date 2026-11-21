@@ -113,22 +113,25 @@
     <section class="readme-card">
       <h2>開発者向け：PCブラウザでローカル確認する場合</h2>
       <pre><code>cd path\to\biolog_mobile
-python -m http.server 8787
+python -m http.server 8787 --bind 127.0.0.1
 
 http://localhost:8787</code></pre>
+      <p>サーバーは起動したPCからのみ接続できます。</p>
     </section>
 
     <section class="readme-card">
       <h2>GitHub Pagesで公開する場合</h2>
       <p><code>biolog_mobile</code> の中身をGitHub Pagesで配信します。このアプリは相対パス前提で作られているため、リポジトリ名付きURLでも動作します。</p>
       <p>公開対象に含める主なファイルは、<code>index.html</code>、<code>README.html</code>、<code>LICENSE.html</code>、<code>PRIVACY_POLICY.html</code>、<code>TERMS_OF_USE.html</code>、<code>styles.css</code>、<code>consent.js</code>、<code>db.js</code>、<code>form.js</code>、<code>backup.js</code>、<code>charts.js</code>、<code>csv.js</code>、<code>app.js</code>、<code>manifest.webmanifest</code>、<code>service-worker.js</code>、<code>icons/icon-192.png</code>、<code>icons/icon-512.png</code>です。</p>
+      <p><code>_config.yml</code> でローカルテスト用の <code>test.html</code> と <code>test.js</code> をJekyllの公開成果物から除外する設定を追加しました。本番での配信除外は未確認です。</p>
       <p>健康記録を含むバックアップファイルやCSVファイルは公開しないでください。</p>
     </section>
 
     <section class="readme-card">
       <h2>バックアップ</h2>
-      <p>バックアップタブからバックアップファイルを保存できます。ファイル名は <code>biolog-mobile-backup-YYYY-MM-DD.json</code> です。内部形式はJSONで、本アプリの記録を復元するために使います。</p>
+      <p>バックアップタブからバックアップファイルを保存できます。ファイル名は <code>biolog-mobile-backup-YYYY-MM-DD.json</code> です。暗号化されていないJSONに健康記録が含まれるため、第三者に共有せず、安全な場所に保管してください。</p>
       <p>CSVファイルは外部データの取り込み用です。完全な復元にはバックアップファイルを使ってください。</p>
+      <p>未リリース版のJSON復元・CSV取り込みでは、20 MiBの上限と上書き確認が適用されます。詳しい手順は <a href="./OPERATION_MANUAL.html">操作マニュアル</a> を参照してください。</p>
     </section>
 
     <section class="readme-card">
@@ -146,7 +149,7 @@ http://localhost:8787</code></pre>
       <ul>
         <li>前日からアプリを開いたまま日付が変わった場合は、記録前に「アプリを更新」を押し、「今日」タブの日付が当日であることを確認してください。</li>
         <li>「日付編集」で入力した場合は、「今日の記録を保存」ではなく、同じ画面の「保存する」を押してください。</li>
-        <li>1日1件の記録として保存され、同じ日付を保存または読み込みした場合は既存記録が更新されます。</li>
+        <li>1日1件の記録として保存され、同じ日付に画面から保存すると既存記録が更新されます。</li>
         <li>CSV内に同じ日付が複数ある場合、そのCSV全体を読み込みません。既存BioLogのCSVは、Mobileへ取り込む前に1ユーザーに絞ることをおすすめします。</li>
         <li>不正なCSVや範囲外の数値がある場合、途中まで取り込まず全体を拒否します。</li>
         <li>空のCSVテキストセルでは、既存のテキスト内容は削除されません。</li>

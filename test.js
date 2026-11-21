@@ -503,6 +503,23 @@
     await window.BioLogCsv.importCsvText("date,memo\n2026-06-27,csv memo only");
     ok("csv omitted numeric still retains existing value", (await window.BioLogDB.getRecordByDate("2026-06-27")).weight === 62.9);
 
+    var confirmedRecord = await window.BioLogDB.getRecordByDate("2026-06-27");
+    var expectedImportRecords = new Map([[confirmedRecord.date_user, confirmedRecord]]);
+    await window.BioLogDB.upsertRecord({ date: confirmedRecord.date, memo: "changed in another tab" });
+    var conflictSnapshot = await recordsSnapshot();
+    var guardedCsv = window.BioLogCsv.validateCsvText(
+      "date,memo\n2026-07-20,new record\n2026-06-27,overwrite"
+    );
+    ok("csv validation returns normalized records before writing", guardedCsv.valid && guardedCsv.records.length === 2);
+    var rejectedChangedRecord = false;
+    try {
+      await window.BioLogDB.importRecordsAtomic(guardedCsv.records, expectedImportRecords);
+    } catch (error) {
+      rejectedChangedRecord = error.message.indexOf("別の画面") !== -1;
+    }
+    ok("import rejects records changed after confirmation", rejectedChangedRecord);
+    ok("import conflict rolls back earlier writes", await recordsSnapshot() === conflictSnapshot);
+
     var indexText = await fetch("./index.html").then(function (response) {
       return response.text();
     });
@@ -624,7 +641,7 @@
     ok("service worker caches privacy policy", serviceWorkerText.indexOf('"./PRIVACY_POLICY.html"') !== -1);
     ok("service worker caches terms", serviceWorkerText.indexOf('"./TERMS_OF_USE.html"') !== -1);
     ok("service worker caches SHA256 list", serviceWorkerText.indexOf('"./SHA256.html"') !== -1);
-    ok("service worker cache version updated", serviceWorkerText.indexOf('CACHE_VERSION = "v2.13.11"') !== -1);
+    ok("service worker cache version updated", serviceWorkerText.indexOf('CACHE_VERSION = "v2.13.12"') !== -1);
     ok("service worker cache prefix is scoped", serviceWorkerText.indexOf('APP_SCOPE_KEY = encodeURIComponent(APP_ROOT_URL.pathname)') !== -1);
     ok("service worker cleanup filters only the current scope", serviceWorkerText.indexOf('name.startsWith(CACHE_PREFIX) && name !== CACHE_NAME') !== -1);
     ok("service worker install bypasses http cache", serviceWorkerText.indexOf('{ cache: "reload" }') !== -1);

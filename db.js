@@ -334,7 +334,7 @@
     });
   }
 
-  function writeRecordsAtomic(records, replaceExisting) {
+  function writeRecordsAtomic(records, replaceExisting, expectedRecords) {
     var importRecords = Array.isArray(records) ? records : [];
 
     if (!importRecords.length) {
@@ -354,6 +354,7 @@
         var added = 0;
         var updated = 0;
         var settled = false;
+        var conflictError = null;
 
         function closeAndReject(error) {
           if (settled) {
@@ -385,6 +386,12 @@
 
           lookup.onsuccess = function () {
             var existing = lookup.result || null;
+            if (expectedRecords && !recordsMatchVersion(existing, expectedRecords.get(source.date_user))) {
+              conflictError = new Error("取り込み対象の記録が別の画面で変更されました。内容を確認してから、もう一度取り込んでください。");
+              abortWith(conflictError);
+              return;
+            }
+
             var normalized = replaceExisting
               ? normalizeRestoredRecord(source, existing)
               : normalizeRecord(source, existing);
@@ -430,7 +437,7 @@
         };
 
         transaction.onabort = function () {
-          closeAndReject(transaction.error);
+          closeAndReject(conflictError || transaction.error);
         };
 
         processNext();
@@ -438,12 +445,12 @@
     });
   }
 
-  function importRecordsAtomic(records) {
-    return writeRecordsAtomic(records, false);
+  function importRecordsAtomic(records, expectedRecords) {
+    return writeRecordsAtomic(records, false, expectedRecords);
   }
 
-  function restoreRecordsAtomic(records) {
-    return writeRecordsAtomic(records, true);
+  function restoreRecordsAtomic(records, expectedRecords) {
+    return writeRecordsAtomic(records, true, expectedRecords);
   }
   window.BioLogDB = {
     openDB: openDB,

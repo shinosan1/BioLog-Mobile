@@ -23,9 +23,22 @@
       </div>
     </header>
 
-    <section class="readme-card">
+    <section class="readme-card" id="unreleased">
       <h2>Unreleased</h2>
-      <p>現在なし。</p>
+      <p>次回ベータ版は <strong>v0.4.1 Beta</strong> を予定しています。以下の変更は本番未反映です。</p>
+      <h3>変更</h3>
+      <ul>
+        <li>バックアップの保存ボタン付近に、健康記録が暗号化されず保存されることと、安全な保管を促す注意を表示。</li>
+        <li>開発者向けのローカルHTTPサーバー起動手順を <code>127.0.0.1</code> に限定。</li>
+        <li>Jekyllの公開成果物から <code>test.html</code> と <code>test.js</code> を除外する設定を追加。ローカルのテスト機能は維持し、本番での配信除外は未確認。</li>
+        <li>Service Workerの内部キャッシュ識別子を <code>v2.13.12</code> に更新。</li>
+      </ul>
+      <h3>修正</h3>
+      <ul>
+        <li>JSON復元とCSV取り込みで、同じ日付の既存記録がある場合のみ上書き対象の件数と日付を表示して確認。JSON復元ではバックアップにない項目が消えることも案内。キャンセル時は書き込まず、確認後に対象記録が変更されていた場合は取り込み全体を中止。</li>
+        <li>JSON・CSVの取り込み上限を20 MiBに設定し、超過したファイルは読み込み前に拒否。</li>
+      </ul>
+      <p>IndexedDBの構造とJSON・CSVの形式は従来どおりです。</p>
     </section>
 
     <section class="readme-card">

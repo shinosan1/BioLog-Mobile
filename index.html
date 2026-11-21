@@ -176,7 +176,8 @@
       </section>
       <div id="backup-message" class="message" hidden></div>
       <div class="backup-actions">
-        <button type="button" id="export-json-button" class="primary-button">バックアップファイルを保存</button>
+        <button type="button" id="export-json-button" class="primary-button" aria-describedby="backup-privacy-note">バックアップファイルを保存</button>
+        <p id="backup-privacy-note" class="muted-text">バックアップファイルには健康記録が暗号化されずに保存されます。第三者に共有せず、安全な場所に保管してください。</p>
         <label class="file-field">
           <span class="field-label">バックアップファイル</span>
           <input type="file" id="import-json-file" accept="application/json,.json">

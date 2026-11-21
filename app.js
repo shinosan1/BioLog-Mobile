@@ -19,6 +19,7 @@
   var THEME_STORAGE_KEY = "biolog_mobile_theme";
   var LIGHT_THEME_COLOR = "#2E7D32";
   var DARK_THEME_COLOR = "#102116";
+  var IMPORT_MAX_MIB = 20;
   var TOP_SUMMARY_ITEMS = [
     { label: "体重", field: "weight", unit: "kg" },
     { label: "体温", field: "temperature", unit: "℃" },
@@ -1154,12 +1155,42 @@
       return Promise.reject(new Error("このブラウザではUTF-8ファイルの読み取りに対応していません。"));
     }
 
+    if (file.size > IMPORT_MAX_MIB * 1024 * 1024) {
+      return Promise.reject(new Error("ファイルが大きすぎます。" + IMPORT_MAX_MIB + " MiB以下のファイルを選択してください。"));
+    }
+
     return file.arrayBuffer().then(function (buffer) {
       try {
         return new TextDecoder("utf-8", { fatal: true }).decode(buffer);
       } catch (error) {
         throw new Error("ファイルをUTF-8として読み取れませんでした。UTF-8形式のファイルを選択してください。");
       }
+    });
+  }
+
+  function importWithOverwriteConfirmation(records, writeRecords, overwriteNote) {
+    return window.BioLogDB.getAllRecords().then(function (existingRecords) {
+      var existingByDate = new Map(existingRecords.map(function (record) {
+        return [record.date_user, record];
+      }));
+      var overwriteDates = records.filter(function (record) {
+        return existingByDate.has(record.date_user);
+      }).map(function (record) {
+        return record.date;
+      }).sort();
+
+      if (overwriteDates.length) {
+        var dates = overwriteDates.slice(0, 5).join("、") + (overwriteDates.length > 5 ? " ほか" : "");
+        var message = "同じ日付の記録 " + overwriteDates.length + " 件を上書きします。\n対象日 " + dates;
+        if (overwriteNote) {
+          message += "\n" + overwriteNote;
+        }
+        if (!window.confirm(message + "\n続けますか？")) {
+          return null;
+        }
+      }
+
+      return writeRecords(records, existingByDate);
     });
   }
 
@@ -1180,8 +1211,15 @@
         throw new Error(validation.errors.join("\n"));
       }
 
-      return window.BioLogBackup.importRecords(validation.records);
+      return importWithOverwriteConfirmation(
+        validation.records,
+        window.BioLogBackup.importRecords,
+        "バックアップに含まれない項目は、上書きする日の記録から削除されます。"
+      );
     }).then(function (result) {
+      if (!result) {
+        return;
+      }
       showMessage(els.backupMessage, result.imported + "件を復元しました。追加: " + result.added + " / 更新: " + result.updated, "success");
       els.importFile.value = "";
       els.importButton.disabled = true;
@@ -1200,8 +1238,16 @@
     }
 
     readFileAsUtf8(els.csvFile.files[0]).then(function (text) {
-      return window.BioLogCsv.importCsvText(text);
+      var validation = window.BioLogCsv.validateCsvText(text);
+      if (!validation.valid) {
+        throw new Error(validation.errors.join("\n"));
+      }
+
+      return importWithOverwriteConfirmation(validation.records, window.BioLogDB.importRecordsAtomic);
     }).then(function (result) {
+      if (!result) {
+        return;
+      }
       showMessage(els.backupMessage, "CSVファイルから" + result.imported + "件を取り込みました。追加: " + result.added + " / 更新: " + result.updated, "success");
       els.csvFile.value = "";
       els.csvButton.disabled = true;
